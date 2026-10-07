@@ -6,7 +6,7 @@
 - 시각 형식: Morrow (다크 캔버스 + 파스텔 카드)
 - 언어: 타이틀은 영어, 내용은 한글
 
-> 현재 상태: **기획 중**. 아직 코드는 없다.
+> 현재 상태: **개발 중** (step11-1 개발 환경 완료). 진행 상황은 [PLAN](docs/PLAN.md).
 
 ## 문서
 
@@ -27,4 +27,19 @@
 
 ## 실행 방법
 
-아직 미정 (기술 스택 결정 후 작성)
+필요: Node.js 24 이상
+
+```bash
+npm install
+npm run dev        # frontend http://localhost:5173, backend http://127.0.0.1:3000
+```
+
+| 명령 | 내용 |
+|---|---|
+| `npm run dev` | frontend + backend 동시 실행 |
+| `npm test` | 모든 워크스페이스 테스트 |
+| `npm run typecheck` | 모든 워크스페이스 타입 검사 |
+
+backend 설정을 바꾸려면 `backend/.env.example`을 `backend/.env`로 복사해서 고친다.
+
+스킬(에이전트용)은 `npx skills experimental_install`로 설치한다 (D-030).

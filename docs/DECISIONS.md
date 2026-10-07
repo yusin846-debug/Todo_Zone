@@ -70,3 +70,5 @@
 | D-063 | 상태 아이콘 4종(오늘 `sun`, 지난 마감 `alert-circle`, 날짜 `calendar`, 완료 `check`)은 앱이 자동으로 붙인다 | 2026-10-07 | [SCREEN-SPEC 1.4](SCREEN-SPEC.md) |
 | D-064 | Board 위에 **Hero**(날짜 eyebrow, 시간대별 영어 인사말, 한글 요약 문장)를 둔다. 요약은 필터와 무관하게 Board 전체 기준이다 | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |
 | D-065 | Project 이름은 앞뒤 공백을 제거하고 **1~30자**다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
+| D-066 | 11-1(개발 환경)을 09·10보다 먼저 한다. 09·10은 11-3 전에 끝낸다 | 2026-10-07 | [PLAN](PLAN.md) |
+| D-067 | 혼자 하는 프로젝트이므로 `main`에 직접 커밋하고, 마일스톤마다 푸시한다 | 2026-10-07 | |

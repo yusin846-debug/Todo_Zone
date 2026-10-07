@@ -1,0 +1,28 @@
+/* 디자인 토큰. 값의 근거: docs/SCREEN-SPEC.md 1장 (D-057, D-058). */
+:root {
+  --canvas: #252722;
+  --surface: #30332d;
+  --line: #3d4038;
+  --paper: #f3f0e8;
+  --paper-muted: #a9ab9f;
+  --ink: #252722;
+  --ink-muted: #43463f;
+
+  --c-inbox: #f3f0e8;
+  --c-mist: #bacdd3;
+  --c-gold: #e0c285;
+  --c-sage: #bccbaa;
+  --c-salmon: #ebaa94;
+
+  --danger: #ff9b8f;
+
+  --font-display: 'Bricolage Grotesque', 'Pretendard Variable', system-ui, sans-serif;
+  --font-body: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+
+  --radius-card: 18px;
+  --radius-focus: 26px;
+  --radius-tag: 22px;
+  --radius-pill: 999px;
+
+  --motion: 150ms ease-out;
+}

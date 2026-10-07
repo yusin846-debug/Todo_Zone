@@ -1,0 +1,61 @@
+.page {
+  min-height: 100vh;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 40px;
+  border-bottom: 1px solid var(--line);
+}
+
+.logo {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.065em;
+}
+
+.logo sup {
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 0.6;
+  letter-spacing: 0;
+}
+
+.note {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.main {
+  padding: 40px;
+}
+
+.status {
+  margin: 0;
+  color: var(--paper-muted);
+}
+
+.status[data-state='down'] {
+  color: var(--danger);
+}
+
+@media (max-width: 600px) {
+  .top {
+    padding: 16px;
+  }
+  .logo {
+    font-size: 28px;
+  }
+  .main {
+    padding: 24px 16px;
+  }
+}

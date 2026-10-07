@@ -8,7 +8,7 @@ TO-DO ZONE: 할 일을 카드로 관리하는 개인용 웹앱을 만드는 저�
 - 서버 + DB에 저장, 로그인 없음, 로컬 실행 전용 ([ADR-0002](docs/adr/0002-server-without-login-local-only.md))
 - TypeScript / React + Vite (`frontend/`) / Node.js + Express (`backend/`) / `shared/` / SQLite (Drizzle + libSQL)
 - 구조와 경계: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- 실행·테스트 명령: 루트와 각 폴더의 `package.json` scripts를 본다 (아직 미작성)
+- 실행·테스트 명령: 루트 `package.json` scripts (`npm run dev`, `npm test`, `npm run typecheck`)
 
 ## 작업 전
 1. 작업 요청마다, 파일을 바꾸거나 명령을 실행하기 전에 다음 문서를 읽는다. 없는 파일은 "없다"고 말한다.
