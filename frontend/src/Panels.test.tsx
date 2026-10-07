@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App } from './App.tsx';
+import { formatKoreanDate, toDateKey } from './lib/dates.ts';
 import { card, installFakeApi } from './test/fakeApi.ts';
 
 afterEach(() => {
@@ -43,10 +44,9 @@ describe('Card 상세 패널 (S2, F3·F4·F7)', () => {
       '자격증 시험 예약',
     );
     expect((p.getByRole('textbox', { name: /Memo/ }) as HTMLTextAreaElement).value).toBe('메모');
-    expect((p.getByLabelText(/Due date/) as HTMLInputElement).value).toBe('2026-10-14');
-    expect((p.getByRole('combobox', { name: /Project/ }) as HTMLSelectElement).value).toBe(
-      'career',
-    );
+    expect(p.getByRole('button', { name: 'Due date: 10월 14일 (수)' })).toBeTruthy();
+    expect(p.getByRole('button', { name: 'Project: 커리어' })).toBeTruthy();
+    expect(p.getByRole('radio', { name: 'Todo' }).getAttribute('aria-checked')).toBe('true');
   });
 
   it('Enter로도 열린다 (Space는 드래그용)', async () => {
@@ -70,7 +70,7 @@ describe('Card 상세 패널 (S2, F3·F4·F7)', () => {
     });
     fireEvent.click(p.getByRole('button', { name: 'Save' }));
 
-    expect(screen.queryByRole('dialog', { name: 'Card' })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Card' })).toBeNull());
     await waitFor(() =>
       expect(api.calls.find((c) => c.method === 'PATCH')?.body).toEqual({
         title: '읽을 책 2권 고르기',
@@ -95,7 +95,12 @@ describe('Card 상세 패널 (S2, F3·F4·F7)', () => {
     renderApp();
     const p = await openCard('자격증 시험 예약');
 
-    fireEvent.click(p.getByRole('button', { name: '마감일 지우기' }));
+    fireEvent.click(p.getByRole('button', { name: /^Due date/ }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: '날짜 고르기' })).getByRole('button', {
+        name: '지우기',
+      }),
+    );
     fireEvent.click(p.getByRole('button', { name: 'Save' }));
     await waitFor(() =>
       expect(api.calls.find((c) => c.method === 'PATCH')?.body).toEqual({ dueDate: null }),
@@ -107,7 +112,7 @@ describe('Card 상세 패널 (S2, F3·F4·F7)', () => {
     renderApp();
     const p = await openCard('읽을 책 고르기');
 
-    fireEvent.change(p.getByRole('combobox', { name: /Status/ }), { target: { value: 'done' } });
+    fireEvent.click(p.getByRole('radio', { name: 'Done' }));
     fireEvent.click(p.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(heading('Done')).toBe('Done 1'));
@@ -142,7 +147,52 @@ describe('Card 상세 패널 (S2, F3·F4·F7)', () => {
     expect(screen.getByText('저장하지 않은 변경이 있어요. 닫을까요?')).toBeTruthy();
 
     fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Close' }));
-    expect(screen.queryByRole('dialog', { name: 'Card' })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Card' })).toBeNull());
+  });
+});
+
+describe('직접 만든 선택 칸 (D-080)', () => {
+  it('Due date: 빠른 선택 "내일"과 달력의 날짜로 고른다', async () => {
+    const api = installFakeApi(fixture);
+    renderApp();
+    const p = await openCard('읽을 책 고르기');
+
+    fireEvent.click(p.getByRole('button', { name: 'Due date: 날짜 없음' }));
+    const picker = within(screen.getByRole('dialog', { name: '날짜 고르기' }));
+    // 달력은 오늘이 있는 달로 열린다: 그 달 15일을 고른다
+    const target = `${toDateKey(new Date()).slice(0, 8)}15`;
+    fireEvent.click(picker.getByRole('button', { name: formatKoreanDate(target) }));
+    expect(p.getByRole('button', { name: `Due date: ${formatKoreanDate(target)}` })).toBeTruthy();
+
+    fireEvent.click(p.getByRole('button', { name: /^Due date/ }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: '날짜 고르기' })).getByRole('button', {
+        name: '내일',
+      }),
+    );
+    fireEvent.click(p.getByRole('button', { name: 'Save' }));
+    await waitFor(() =>
+      expect(api.calls.find((c) => c.method === 'PATCH')?.body).toHaveProperty('dueDate'),
+    );
+  });
+
+  it('Project: 목록을 열어 고르면 트리거에 반영된다', async () => {
+    installFakeApi(fixture);
+    renderApp();
+    const p = await openCard('읽을 책 고르기');
+
+    fireEvent.click(p.getByRole('button', { name: 'Project: Inbox' }));
+    fireEvent.click(screen.getByRole('option', { name: /채운/ }));
+    expect(p.getByRole('button', { name: 'Project: 채운' })).toBeTruthy();
+  });
+
+  it('Status: 방향키로도 바뀐다', async () => {
+    installFakeApi(fixture);
+    renderApp();
+    const p = await openCard('읽을 책 고르기');
+
+    fireEvent.keyDown(p.getByRole('radio', { name: 'Todo' }), { key: 'ArrowRight' });
+    expect(p.getByRole('radio', { name: 'Doing' }).getAttribute('aria-checked')).toBe('true');
   });
 });
 

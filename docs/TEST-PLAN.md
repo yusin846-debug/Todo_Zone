@@ -9,7 +9,9 @@ PRD의 수용 기준마다 대응하는 테스트를 둔다. 테스트 도구는
 | 순수 로직 | 순서 규칙, 크기 단계, 날짜 표기, 요약, 진행률 | `frontend/src/lib/*.test.ts` | `npm test` |
 | API 통합 | 엔드포인트의 응답, 규칙, 오류 코드, DB 제약 | `backend/src/**/*.test.ts` | `npm test` |
 | 화면 | 열·필터·새 Card·한글 조합·Done 접기·서버 꺼짐·분기 숨김 | `frontend/src/App.test.tsx` (가짜 서버 `src/test/fakeApi.ts`, shared 규칙 사용) | `npm test` |
-| 실제 브라우저 | 마우스 드래그, 데스크톱·모바일 화면 | 수동 + CDP 스크립트(작업 기록) | 마일스톤마다 |
+| 실제 브라우저 | 마우스 드래그, 데스크톱·모바일 화면, 애니메이션 중간 프레임 | 수동 + CDP 스크립트(작업 기록) | 마일스톤마다 |
+
+테스트에서는 `MotionGlobalConfig.skipAnimations`로 애니메이션을 건너뛴다(`src/test/setup.ts`). 움직임 자체는 실제 브라우저 프레임 캡처로 확인한다.
 
 **완료 판정:** `npm test`와 `npm run typecheck`가 모두 통과하고, 실제 브라우저 확인을 했을 때만 마일스톤을 완료로 표시한다 (AGENTS.md "완료 확인").
 
@@ -45,6 +47,10 @@ PRD의 수용 기준마다 대응하는 테스트를 둔다. 테스트 도구는
 | F9 | 필터 켜기·다시 눌러 해제, Progress | `App.test` · `board.test` progressOf | 화면·로직 |
 | F10 | completedAt 기록·삭제, 이번 분기만 Board에 | `board.test` · `quarter.test` · `cards.api.test` · `App.test` | 로직·API·화면 |
 | F10 | Done ⇔ completed_at (CHECK) | `constraints.test` | API |
+| F10 | Reopen → Todo 맨 위 (지난 분기만) | `Review.test` | 화면 |
+| F11 | 분기 목록·분기별 완료·Project 묶음·비율 | `review.test` | 로직 |
+| F11 | #review 진입·유지, 완료 수, 빈 분기 문구 | `Review.test` | 화면 |
+| D-080 | 날짜 빠른 선택·달력, Project 목록, Status 방향키 | `dates.test` · `Panels.test` | 로직·화면 |
 
 ## 3. 데이터 안전장치 테스트 (DATA-MODEL 5)
 

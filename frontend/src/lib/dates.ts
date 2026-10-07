@@ -34,11 +34,32 @@ export function dueLabel(
   if (due === today) return { text: '오늘', kind };
   if (due === addDays(today, 1)) return { text: '내일', kind };
   if (due === addDays(today, -1)) return { text: '어제', kind };
-  const date = parse(due);
-  return {
-    text: `${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAYS_KO[date.getDay()]})`,
-    kind,
-  };
+  return { text: formatKoreanDate(due), kind };
+}
+
+/** '10월 14일 (수)' */
+export function formatKoreanDate(key: string): string {
+  const date = parse(key);
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAYS_KO[date.getDay()]})`;
+}
+
+/** today 이후(오늘 포함) 가장 가까운 weekday(0=일 … 6=토) */
+export function nextWeekday(today: string, weekday: number): string {
+  const diff = (weekday - parse(today).getDay() + 7) % 7;
+  return addDays(today, diff);
+}
+
+/** 다음 주(월~일 기준) 월요일 */
+export function nextWeekMonday(today: string): string {
+  const day = parse(today).getDay(); // 0=일
+  return addDays(today, day === 0 ? 1 : 8 - day);
+}
+
+/** month(1~12)의 달력 칸 42개: 그 달 1일이 든 주의 일요일부터 6주 */
+export function monthGrid(year: number, month: number): string[] {
+  const first = new Date(year, month - 1, 1);
+  const start = toDateKey(new Date(year, month - 1, 1 - first.getDay()));
+  return Array.from({ length: 42 }, (_, i) => addDays(start, i));
 }
 
 /** Hero 인사말 (D-064) */

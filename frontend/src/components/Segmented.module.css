@@ -1,0 +1,42 @@
+.group {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+  border: 1px solid var(--line);
+}
+
+.group[data-tone='header'] {
+  background: var(--surface);
+  border-color: transparent;
+}
+
+.option {
+  position: relative;
+  flex: 1;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--paper-muted);
+  font: 600 14px/1 var(--font-body);
+  cursor: pointer;
+  transition: color var(--motion);
+}
+
+.option[aria-checked='true'] {
+  color: var(--ink);
+}
+
+/* 선택 표시: 버튼 뒤의 물방울 */
+.blob {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+}
+
+.text {
+  position: relative;
+}

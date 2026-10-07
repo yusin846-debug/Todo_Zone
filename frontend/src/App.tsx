@@ -1,39 +1,81 @@
 import { useCallback, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useBoardActions, useBoardQuery, useProjectActions, type BoardData } from './api/board.ts';
 import { Board } from './components/Board.tsx';
 import { CardPanel } from './components/CardPanel.tsx';
 import { ProjectsPanel } from './components/ProjectsPanel.tsx';
+import { ReviewPage } from './components/ReviewPage.tsx';
 import { BoardSkeleton, ServerDown, Toast } from './components/Status.tsx';
 import { Header, Hero, ProjectTags } from './components/Top.tsx';
 import { toDateKey } from './lib/dates.ts';
+import { settle } from './lib/motion.ts';
 import { boardCards } from './lib/quarter.ts';
+import { useView, type View } from './lib/useView.ts';
 import styles from './App.module.css';
 
 export function App() {
   const board = useBoardQuery();
+  const [view, setView] = useView();
 
   return (
     <>
-      <Header />
+      <Header view={view} onView={setView} />
       {board.isPending ? (
         <BoardSkeleton />
       ) : board.isError ? (
         <ServerDown onRetry={() => board.refetch()} />
       ) : (
-        <BoardPage data={board.data} />
+        <Ready data={board.data} view={view} />
       )}
+    </>
+  );
+}
+
+/** 데이터가 준비된 뒤: Board와 Review가 같은 작업(actions)과 토스트를 쓴다 */
+function Ready({ data, view }: { data: BoardData; view: View }) {
+  const [toast, setToast] = useState<string | null>(null);
+  const clearToast = useCallback(() => setToast(null), []);
+  const actions = useBoardActions(setToast);
+
+  return (
+    <>
+      {/* 화면 전환: 부드럽게 교차 (settle) */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={view}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={settle}
+        >
+          {view === 'board' ? (
+            <BoardPage data={data} actions={actions} />
+          ) : (
+            <ReviewPage
+              cards={data.cards}
+              projects={data.projects}
+              // 다시 열기 (D-073): Todo 맨 위로
+              onReopen={(id) => actions.saveCard(id, {}, 'todo')}
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
+      <Toast message={toast} onDone={clearToast} />
     </>
   );
 }
 
 type OpenPanel = { kind: 'card'; id: string } | { kind: 'projects' } | null;
 
-function BoardPage({ data }: { data: BoardData }) {
+function BoardPage({
+  data,
+  actions,
+}: {
+  data: BoardData;
+  actions: ReturnType<typeof useBoardActions>;
+}) {
   const [filter, setFilter] = useState<string | null>(null);
   const [panel, setPanel] = useState<OpenPanel>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  const clearToast = useCallback(() => setToast(null), []);
-  const actions = useBoardActions(setToast);
   const projectActions = useProjectActions();
 
   const now = new Date();
@@ -73,25 +115,28 @@ function BoardPage({ data }: { data: BoardData }) {
         />
       </div>
 
-      {openCard && (
-        <CardPanel
-          key={openCard.id}
-          card={openCard}
-          projects={data.projects}
-          onSave={(patch, status) => actions.saveCard(openCard.id, patch, status)}
-          onDelete={() => actions.deleteCard(openCard.id)}
-          onClose={() => setPanel(null)}
-        />
-      )}
-      {panel?.kind === 'projects' && (
-        <ProjectsPanel
-          projects={data.projects}
-          cards={data.cards}
-          actions={projectActions}
-          onClose={() => setPanel(null)}
-        />
-      )}
-      <Toast message={toast} onDone={clearToast} />
+      <AnimatePresence>
+        {openCard && (
+          <CardPanel
+            key={openCard.id}
+            card={openCard}
+            projects={data.projects}
+            today={today}
+            onSave={(patch, status) => actions.saveCard(openCard.id, patch, status)}
+            onDelete={() => actions.deleteCard(openCard.id)}
+            onClose={() => setPanel(null)}
+          />
+        )}
+        {panel?.kind === 'projects' && (
+          <ProjectsPanel
+            key="projects"
+            projects={data.projects}
+            cards={data.cards}
+            actions={projectActions}
+            onClose={() => setPanel(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

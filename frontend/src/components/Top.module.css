@@ -1,11 +1,19 @@
 /* SCREEN-SPEC S1: Header, Hero, Project 태그 */
 
 .header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 22px 40px;
   border-bottom: 1px solid var(--line);
+}
+
+.viewSwitch {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
 }
 
 .logo {

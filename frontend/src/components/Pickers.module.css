@@ -1,0 +1,235 @@
+/* 직접 만든 선택 부품 (D-080): 팝오버, Project 목록, 달력 */
+
+.anchor {
+  position: relative;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--canvas);
+  color: var(--paper);
+  font: 15px/1.5 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.trigger[aria-expanded='true'] {
+  border-color: var(--paper);
+}
+
+.triggerText {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.triggerText[data-empty='true'] {
+  color: var(--paper-muted);
+}
+
+.chevron {
+  display: grid;
+  color: var(--paper-muted);
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  min-width: 100%;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot[data-color='inbox'] {
+  background: var(--c-inbox);
+}
+.dot[data-color='mist'] {
+  background: var(--c-mist);
+}
+.dot[data-color='gold'] {
+  background: var(--c-gold);
+}
+.dot[data-color='sage'] {
+  background: var(--c-sage);
+}
+.dot[data-color='salmon'] {
+  background: var(--c-salmon);
+}
+
+/* 아래 공간이 모자라면 트리거 위로 */
+.popover[data-placement='top'] {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+/* ---------- Project 목록 ---------- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  outline: none;
+}
+
+/* 키보드 포커스는 data-active 항목 배경으로 보여 준다. 목록 전체 테두리는 그리지 않는다 */
+.list:focus-visible {
+  outline: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.option[data-active='true'] {
+  background: var(--line);
+}
+
+.option[aria-selected='true'] {
+  font-weight: 600;
+}
+
+/* ---------- 달력 ---------- */
+
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.chip {
+  padding: 7px 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+  color: var(--paper);
+  font: 600 13px/1 var(--font-body);
+  cursor: pointer;
+}
+
+.chip[data-on='true'] {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.chip[data-clear] {
+  color: var(--danger);
+}
+
+.monthHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px 6px;
+}
+
+.monthTitle {
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+
+.navBtn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.navBtn:hover {
+  background: var(--line);
+}
+
+.weekdays,
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 36px);
+  gap: 2px;
+}
+
+.weekdays span {
+  text-align: center;
+  font-size: 11px;
+  color: var(--paper-muted);
+  padding: 4px 0;
+}
+
+.monthClip {
+  overflow: hidden;
+}
+
+.day {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--paper);
+  font: 500 14px/1 var(--font-body);
+  cursor: pointer;
+}
+
+.day:hover {
+  background: var(--line);
+}
+
+.day[data-out='true'] {
+  color: var(--line);
+}
+
+.day[data-today='true'] .dayNum {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.day[aria-pressed='true'] {
+  color: var(--ink);
+}
+
+/* 선택한 날의 물방울: 다른 날을 고르면 그쪽으로 흘러간다 */
+.dayBubble {
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.dayNum {
+  position: relative;
+}

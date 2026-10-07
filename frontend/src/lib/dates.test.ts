@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, dueLabel, eyebrowDate, greeting, toDateKey } from './dates.ts';
+import {
+  addDays,
+  dueLabel,
+  eyebrowDate,
+  formatKoreanDate,
+  greeting,
+  monthGrid,
+  nextWeekMonday,
+  nextWeekday,
+  toDateKey,
+} from './dates.ts';
 
 const TODAY = '2026-10-07'; // 수요일
 
@@ -47,5 +57,31 @@ describe('greeting', () => {
 describe('eyebrowDate', () => {
   it('영어 대문자 날짜', () => {
     expect(eyebrowDate(TODAY)).toBe('WEDNESDAY, OCTOBER 7');
+  });
+});
+
+describe('달력 도우미 (D-080)', () => {
+  it('formatKoreanDate: "10월 14일 (수)"', () => {
+    expect(formatKoreanDate('2026-10-14')).toBe('10월 14일 (수)');
+  });
+
+  it('nextWeekday: 오늘 이후 가장 가까운 그 요일 (오늘이면 오늘)', () => {
+    expect(nextWeekday('2026-10-07', 5)).toBe('2026-10-09'); // 수 → 이번 주 금
+    expect(nextWeekday('2026-10-09', 5)).toBe('2026-10-09'); // 금 → 오늘
+    expect(nextWeekday('2026-10-10', 5)).toBe('2026-10-16'); // 토 → 다음 금
+  });
+
+  it('nextWeekMonday: 다음 주(월~일 기준) 월요일', () => {
+    expect(nextWeekMonday('2026-10-07')).toBe('2026-10-12'); // 수
+    expect(nextWeekMonday('2026-10-11')).toBe('2026-10-12'); // 일 → 바로 다음 날
+    expect(nextWeekMonday('2026-10-12')).toBe('2026-10-19'); // 월 → 그다음 주 월
+  });
+
+  it('monthGrid: 일요일부터 6주(42칸), 앞뒤 달 날짜 포함', () => {
+    const grid = monthGrid(2026, 10);
+    expect(grid).toHaveLength(42);
+    expect(grid[0]).toBe('2026-09-27'); // 10/1(목) 앞의 일요일
+    expect(grid[4]).toBe('2026-10-01');
+    expect(grid.at(-1)).toBe('2026-11-07');
   });
 });

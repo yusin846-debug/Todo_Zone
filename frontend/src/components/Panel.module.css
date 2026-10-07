@@ -93,17 +93,6 @@
   field-sizing: content;
 }
 
-.row2 {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  gap: 12px;
-}
-
-.dateRow {
-  display: flex;
-  gap: 6px;
-}
-
 .error {
   margin: 0;
   color: var(--danger);

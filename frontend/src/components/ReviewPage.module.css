@@ -1,0 +1,258 @@
+/* SCREEN-SPEC S5 Quarterly Review */
+
+.page {
+  max-width: 1040px;
+  padding: 36px 40px 64px;
+  overflow-x: clip;
+}
+
+.quarterNav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+
+.navBtn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.quarterChip {
+  position: relative;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--paper-muted);
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+}
+
+.quarterChip[aria-pressed='true'] {
+  color: var(--ink);
+}
+
+.quarterBlob {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+}
+
+.quarterText {
+  position: relative;
+}
+
+.headline {
+  margin: 0 0 40px;
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 1.02;
+  letter-spacing: -0.055em;
+}
+
+.light {
+  display: block;
+  font-weight: 300;
+}
+
+.heavy {
+  display: block;
+  font-weight: 800;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+}
+
+.empty {
+  color: var(--paper-muted);
+}
+
+/* ---------- By project ---------- */
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 44px;
+  padding: 0;
+  list-style: none;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 160px 1fr 32px;
+  align-items: center;
+  gap: 14px;
+}
+
+.barName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barTrack {
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+}
+
+.barCount {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  text-align: right;
+}
+
+.barFill[data-color='inbox'],
+.dot[data-color='inbox'],
+.check[data-color='inbox'] {
+  background: var(--c-inbox);
+}
+.barFill[data-color='mist'],
+.dot[data-color='mist'],
+.check[data-color='mist'] {
+  background: var(--c-mist);
+}
+.barFill[data-color='gold'],
+.dot[data-color='gold'],
+.check[data-color='gold'] {
+  background: var(--c-gold);
+}
+.barFill[data-color='sage'],
+.dot[data-color='sage'],
+.check[data-color='sage'] {
+  background: var(--c-sage);
+}
+.barFill[data-color='salmon'],
+.dot[data-color='salmon'],
+.check[data-color='salmon'] {
+  background: var(--c-salmon);
+}
+
+/* ---------- Finished ---------- */
+
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 28px 32px;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--ink);
+}
+
+.itemTitle {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.itemDate {
+  font-size: 12px;
+  color: var(--paper-muted);
+  white-space: nowrap;
+}
+
+.reopen {
+  grid-column: 2 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--paper);
+  font: 600 12px/1 var(--font-body);
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 24px 16px 48px;
+  }
+  .headline {
+    font-size: 40px;
+  }
+  .barRow {
+    grid-template-columns: 110px 1fr 28px;
+  }
+}

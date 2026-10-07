@@ -2,14 +2,29 @@ import type { Card, Project } from '@todo-zone/shared';
 import { progressOf, summarize } from '../lib/board.ts';
 import { eyebrowDate, greeting } from '../lib/dates.ts';
 import { Plus } from 'lucide-react';
+import type { View } from '../lib/useView.ts';
 import { ProjectIconView } from './icons.tsx';
+import { Segmented } from './Segmented.tsx';
 import styles from './Top.module.css';
 
-export function Header() {
+/** 헤더: 워드마크 / Board·Review 전환(D-081) / 한 줄 */
+export function Header({ view, onView }: { view: View; onView: (view: View) => void }) {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
         to-do zone<sup aria-hidden="true">✳</sup>
+      </div>
+      <div className={styles.viewSwitch}>
+        <Segmented
+          label="화면"
+          tone="header"
+          options={[
+            { value: 'board', label: 'Board' },
+            { value: 'review', label: 'Review' },
+          ]}
+          value={view}
+          onChange={onView}
+        />
       </div>
       <div className={styles.note}>One card at a time.</div>
     </header>

@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { motion } from 'motion/react';
 import { X } from 'lucide-react';
+import { settle } from '../lib/motion.ts';
 import styles from './Panel.module.css';
 
 /**
@@ -26,9 +28,13 @@ export function Panel({
   }, []);
 
   return (
-    <aside
+    <motion.aside
       ref={ref}
       className={styles.panel}
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '100%' }}
+      transition={settle}
       role="dialog"
       aria-label={title}
       onKeyDown={(e) => {
@@ -44,8 +50,10 @@ export function Panel({
           Close <X size={14} aria-hidden="true" />
         </button>
       </div>
-      <div className={styles.panelBody}>{children}</div>
+      <div className={styles.panelBody} data-scroll-area>
+        {children}
+      </div>
       {footer && <div className={styles.panelFoot}>{footer}</div>}
-    </aside>
+    </motion.aside>
   );
 }

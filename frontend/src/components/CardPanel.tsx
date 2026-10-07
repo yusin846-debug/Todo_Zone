@@ -9,6 +9,9 @@ import {
   type UpdateCardInput,
 } from '@todo-zone/shared';
 import { ConfirmDialog } from './ConfirmDialog.tsx';
+import { DatePicker } from './DatePicker.tsx';
+import { ProjectSelect } from './ProjectSelect.tsx';
+import { Segmented } from './Segmented.tsx';
 import { Panel } from './Panel.tsx';
 import styles from './Panel.module.css';
 
@@ -21,12 +24,14 @@ const clip = (text: string, max: number) =>
 export function CardPanel({
   card,
   projects,
+  today,
   onSave,
   onDelete,
   onClose,
 }: {
   card: Card;
   projects: Project[];
+  today: string;
   onSave: (patch: UpdateCardInput, status: Status | null) => void;
   onDelete: () => void;
   onClose: () => void;
@@ -102,58 +107,26 @@ export function CardPanel({
           </span>
         </label>
 
-        <div className={styles.row2}>
-          <label className={styles.field}>
-            <span className={styles.eyebrow}>Due date</span>
-            <span className={styles.dateRow}>
-              <input
-                type="date"
-                className={styles.input}
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-              />
-              {dueDate && (
-                <button
-                  type="button"
-                  className={styles.ghostBtn}
-                  aria-label="마감일 지우기"
-                  onClick={() => setDueDate('')}
-                >
-                  ✕
-                </button>
-              )}
-            </span>
-          </label>
-          <label className={styles.field}>
-            <span className={styles.eyebrow}>Status</span>
-            <select
-              className={styles.input}
-              value={status}
-              onChange={(e) => setStatus(e.target.value as Status)}
-            >
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_LABEL[s]}
-                </option>
-              ))}
-            </select>
-          </label>
+        {/* 선택 칸은 직접 만든 부품 (D-080): 애니메이션, 한글 날짜 */}
+        <div className={styles.field}>
+          <span className={styles.eyebrow}>Due date</span>
+          <DatePicker value={dueDate || null} today={today} onChange={(d) => setDueDate(d ?? '')} />
         </div>
 
-        <label className={styles.field}>
+        <div className={styles.field}>
+          <span className={styles.eyebrow}>Status</span>
+          <Segmented
+            label="Status"
+            options={STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
+            value={status}
+            onChange={setStatus}
+          />
+        </div>
+
+        <div className={styles.field}>
           <span className={styles.eyebrow}>Project</span>
-          <select
-            className={styles.input}
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-          >
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
+          <ProjectSelect projects={projects} value={projectId} onChange={setProjectId} />
+        </div>
       </Panel>
 
       {confirm === 'delete' && (
