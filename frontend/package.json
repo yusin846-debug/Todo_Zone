@@ -17,7 +17,8 @@
     "@todo-zone/shared": "^0.0.0",
     "lucide-react": "^1.52.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "@dnd-kit/utilities": "^3.2.2"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.3",

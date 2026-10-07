@@ -1,0 +1,130 @@
+import type { CSSProperties } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Calendar, Check, CircleAlert, Sun } from 'lucide-react';
+import type { Card, Project } from '@todo-zone/shared';
+import type { CardTier } from '../lib/board.ts';
+import { dueLabel } from '../lib/dates.ts';
+import { ProjectIconView } from './icons.tsx';
+import styles from './Board.module.css';
+
+type Props = { card: Card; project: Project; tier: CardTier; today: string };
+
+/** 날짜 배지 + 상태 아이콘 (D-017, D-063) */
+function DueBadge({ card, today }: { card: Card; today: string }) {
+  if (card.dueDate === null) return null;
+  const { text, kind } = dueLabel(card.dueDate, today, card.status === 'done');
+  const Icon = kind === 'today' ? Sun : kind === 'overdue' ? CircleAlert : Calendar;
+  return (
+    <span className={styles.due} data-kind={kind}>
+      <Icon size={13} strokeWidth={1.75} aria-hidden="true" />
+      {kind === 'overdue' && <span className={styles.srOnly}>지난 마감 </span>}
+      {text}
+    </span>
+  );
+}
+
+/** Card 한 장의 모양. 크기 단계는 SCREEN-SPEC S1 (D-060). */
+export function CardView({ card, project, tier, today }: Props) {
+  if (tier === 'done') {
+    return (
+      <>
+        <span className={styles.doneChip} data-color={project.color}>
+          <Check size={13} strokeWidth={2.5} aria-hidden="true" />
+        </span>
+        <h3 className={styles.title}>{card.title}</h3>
+      </>
+    );
+  }
+
+  const chip = (
+    <span className={styles.chip}>
+      <ProjectIconView icon={project.icon} size={tier === 'focus' ? 22 : tier === 's' ? 14 : 16} />
+    </span>
+  );
+
+  if (tier === 's') {
+    return (
+      <div className={styles.row}>
+        {chip}
+        <h3 className={styles.title}>{card.title}</h3>
+      </div>
+    );
+  }
+
+  if (tier === 'm') {
+    return (
+      <>
+        <div className={styles.row}>
+          {chip}
+          <h3 className={styles.title}>{card.title}</h3>
+        </div>
+        <div className={styles.meta}>
+          <DueBadge card={card} today={today} />
+          <span>{project.name}</span>
+        </div>
+      </>
+    );
+  }
+
+  // focus, l: 머리(아이콘 + Project) / 제목 / 메모 미리보기 / 메타
+  return (
+    <>
+      <div className={styles.head}>
+        {chip}
+        <span className={styles.label}>{project.name}</span>
+      </div>
+      <h3 className={styles.title}>{card.title}</h3>
+      {card.memo.trim() !== '' && <p className={styles.memo}>{card.memo}</p>}
+      {card.dueDate !== null && (
+        <div className={styles.meta}>
+          <DueBadge card={card} today={today} />
+        </div>
+      )}
+    </>
+  );
+}
+
+/** 드래그할 수 있는 Card (dnd-kit). 집힌 동안 제자리에는 같은 높이의 면만 남는다 (D-061). */
+export function SortableCard(props: Props) {
+  const { card, project, tier } = props;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: card.id,
+    data: { status: card.status },
+  });
+
+  const style: CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+  };
+
+  return (
+    <article
+      ref={setNodeRef}
+      style={style}
+      className={styles.card}
+      data-tier={tier}
+      data-color={project.color}
+      data-placeholder={isDragging}
+      aria-label={`${project.name}: ${card.title}`}
+      {...attributes}
+      {...listeners}
+    >
+      <CardView {...props} />
+    </article>
+  );
+}
+
+/** DragOverlay에 그리는 집힌 Card: 회전 없이 살짝 커진다 (D-061). */
+export function LiftedCard(props: Props) {
+  return (
+    <article
+      className={styles.card}
+      data-tier={props.tier}
+      data-color={props.project.color}
+      data-lifted
+    >
+      <CardView {...props} />
+    </article>
+  );
+}
