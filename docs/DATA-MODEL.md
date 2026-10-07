@@ -17,9 +17,10 @@ projects 1 ──────< cards
 | 열 | 타입 | 제약 | 설명 |
 |---|---|---|---|
 | `id` | TEXT | PK | UUID (D-050) |
-| `name` | TEXT | NOT NULL, 앞뒤 공백 제거 후 1~30자 ⚠미정 | 화면에 보이는 이름 |
+| `name` | TEXT | NOT NULL, 앞뒤 공백 제거 후 1~30자 (D-065) | 화면에 보이는 이름 |
 | `name_key` | TEXT | NOT NULL, **UNIQUE** | 중복 검사용. `trim(name)`을 영문 소문자로 바꾼 값 (D-053) |
-| `color` | TEXT | NOT NULL, CHECK ∈ {`inbox`, `lavender`, `butter`, `sage`, `apricot`} | 색 이름. 색 코드는 저장하지 않는다 (D-054) |
+| `color` | TEXT | NOT NULL, CHECK ∈ {`inbox`, `mist`, `gold`, `sage`, `salmon`} | 색 이름. 색 코드는 저장하지 않는다 (D-054, D-057) |
+| `icon` | TEXT | NOT NULL, DEFAULT `'folder'` | Lucide 아이콘 이름. 허용 목록(24개 + `inbox`)은 shared에서 검사한다 (D-062) |
 | `is_inbox` | INTEGER | NOT NULL, CHECK ∈ {0, 1}, DEFAULT 0 | Inbox 표시 (D-052) |
 | `created_at` | TEXT | NOT NULL | UTC ISO 8601 (`2026-10-07T05:12:00.000Z`). Project 줄 정렬 기준 |
 | `updated_at` | TEXT | NOT NULL | UTC ISO 8601 |
@@ -27,7 +28,10 @@ projects 1 ──────< cards
 **테이블 제약**
 - `UNIQUE INDEX ... ON projects(is_inbox) WHERE is_inbox = 1`: Inbox는 **최대 1개**.
 - `CHECK ((is_inbox = 1 AND color = 'inbox') OR (is_inbox = 0 AND color <> 'inbox'))`: 흰색은 Inbox 전용 (D-042).
-- Inbox는 첫 마이그레이션에서 1개 만든다(`name = 'Inbox'`). 따라서 Inbox는 **정확히 1개**다.
+- `CHECK ((is_inbox = 1 AND icon = 'inbox') OR (is_inbox = 0 AND icon <> 'inbox'))`: `inbox` 아이콘은 Inbox 전용.
+- Inbox는 첫 마이그레이션에서 1개 만든다(`name = 'Inbox'`, `color = 'inbox'`, `icon = 'inbox'`). 따라서 Inbox는 **정확히 1개**다.
+
+> 아이콘 허용 목록에 DB CHECK를 걸지 않는 이유: 아이콘을 추가할 때마다 마이그레이션이 필요해진다. 색은 디자인 토큰과 1:1이라 CHECK를 건다.
 
 ### 2.2 `cards`
 
@@ -82,7 +86,9 @@ projects 1 ──────< cards
 | Project 최대 20개 | D-034 | | ✓ (V3 문구) | |
 | Inbox 정확히 1개 | D-052 | 부분 UNIQUE + 시드 | ✓ | |
 | Inbox 이름·색 변경, 삭제 금지 | D-016 | CHECK(색) | ✓ (V4 문구) | |
-| 흰색은 Inbox 전용 | D-042 | CHECK | ✓ | ✓ |
+| 크림색·`inbox` 아이콘은 Inbox 전용 | D-042, D-062 | CHECK | ✓ | ✓ |
+| Project 이름 1~30자 | D-065 | | ✓ (V5 문구) | ✓ |
+| Project 아이콘은 허용 목록 중 하나 | D-062 | | ✓ | ✓ |
 | Project 삭제 시 Card → Inbox | D-016 | FK RESTRICT(안전장치) | ✓ (트랜잭션) | |
 | 삭제는 영구 | D-015 | | ✓ | |
 
@@ -92,9 +98,9 @@ projects 1 ──────< cards
 
 | 표 | 내용 |
 |---|---|
-| projects | Inbox 1개 (`is_inbox = 1`, `color = 'inbox'`) |
+| projects | Inbox 1개 (`is_inbox = 1`, `color = 'inbox'`, `icon = 'inbox'`) |
 | cards | 없음 |
 
 ## 7. 미정
 
-- Project 이름의 최대 길이 (제안: 30자. Project 타일 폭 200px에 한글 약 10자가 보인다)
+없음.

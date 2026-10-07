@@ -5,7 +5,7 @@
 
 | ID | 결정 | 날짜 | 근거 |
 |---|---|---|---|
-| D-001 | 앱 이름은 **TO-DO ZONE**이다. 앱 안의 용어는 "Card"를 쓰고, "To-do"는 브랜드 이름에만 쓴다 | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
+| D-001 | 앱 이름은 **TO-DO ZONE**이다. 앱 안의 용어는 "Card"를 쓰고, "To-do"는 브랜드 이름에만 쓴다 → 워드마크 표기는 D-059 | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
 | D-002 | 해야 할 일을 카드로 관리하는 **개인용(사용자 1명)** 웹앱이다 | 2026-10-07 | |
 | D-003 | 구조는 **Trello**, 시각 형식은 **Morrow**를 참고한다 | 2026-10-07 | [design-insights-morrow](design-insights-morrow.md) |
 | D-004 | **카드 1장 = 할 일 1개**다. 용어는 Card로 통일한다 | 2026-10-07 | [ADR-0001](adr/0001-card-is-one-unit-of-work.md) |
@@ -46,11 +46,11 @@
 | D-039 | 스타일은 **CSS Modules + CSS 변수(디자인 토큰)**로 한다 | 2026-10-07 | |
 | D-040 | 개발은 루트에서 `npm run dev` 한 번으로 실행한다. frontend는 5173, backend는 **127.0.0.1:3000**이고 Vite가 `/api`를 백엔드로 넘긴다(프록시) | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
 | D-041 | MVP는 **로컬 전용**이다. MVP 이후 **Vercel 배포** 마일스톤을 둔다. 배포 전에 인증을 추가하도록 ADR-0002를 재검토한다 | 2026-10-07 | [ADR-0005](adr/0005-drizzle-libsql-deploy-ready.md) |
-| D-042 | 일반 Project는 **4색**(라벤더, 버터, 세이지, 살구)에서만 고른다. **흰색은 Inbox 전용**이다. 새 Project의 색은 4색을 순서대로 돌아가며 자동 지정한다 (D-016 개정) | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
-| D-043 | 영어 타이틀 폰트는 **Inter Tight**, 한글·본문은 **Pretendard**다 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
+| D-042 | 일반 Project는 **4색**(라벤더, 버터, 세이지, 살구)에서만 고른다. **흰색은 Inbox 전용**이다. 새 Project의 색은 4색을 순서대로 돌아가며 자동 지정한다 (D-016 개정) → 색 이름은 D-057로 개정 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
+| D-043 | 영어 타이틀 폰트는 **Inter Tight**, 한글·본문은 **Pretendard**다 → **D-058로 개정** (Bricolage Grotesque) | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
 | D-044 | Pretendard는 **jsDelivr CDN**, Inter Tight는 Google Fonts에서 불러온다 | 2026-10-07 | |
 | D-045 | Done 열은 **펼친 상태로 시작**하고, 접힘 상태는 브라우저(localStorage)에 기억한다 | 2026-10-07 | |
-| D-046 | 살구색은 대비 기준(4.5) 때문에 `#F2C1AE`로 조정한다. Overdue는 카드 색과 상관없이 **어두운 배지**(`#222` 배경, `#FF9B8F` 글자)로 표시한다 | 2026-10-07 | [SCREEN-SPEC 1.1](SCREEN-SPEC.md) |
+| D-046 | 살구색은 대비 기준(4.5) 때문에 `#F2C1AE`로 조정한다. Overdue는 카드 색과 상관없이 **어두운 배지**(`#222` 배경, `#FF9B8F` 글자)로 표시한다 → 색은 **D-057로 개정** (Overdue 배지 방식은 유지) | 2026-10-07 | [SCREEN-SPEC 1.1](SCREEN-SPEC.md) |
 | D-047 | Card 상세와 Projects 관리는 데스크톱에서 **오른쪽 400px 패널**, 모바일에서 **전체 화면 시트**로 연다 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
 | D-048 | 화면 확인용 **HTML 시안**을 `docs/mockups/`에 둔다. 구현 코드는 아니다 | 2026-10-07 | [mockups/board.html](mockups/board.html) |
 | D-049 | 카드 순서는 status별 **정수 순번(0부터 빈틈없이)**으로 저장하고, 변경할 때마다 트랜잭션 안에서 다시 매긴다 | 2026-10-07 | [DATA-MODEL 4](DATA-MODEL.md) |
@@ -58,5 +58,15 @@
 | D-051 | Due date는 **시간대 없는 `YYYY-MM-DD`**, `created_at`/`updated_at`은 **UTC ISO 8601**로 저장한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
 | D-052 | Inbox는 `projects.is_inbox = 1`로 구분하고, DB 제약으로 정확히 1개를 보장한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
 | D-053 | Project 이름 중복은 **앞뒤 공백을 제거하고 영문 대소문자를 무시**해서 판단한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
-| D-054 | 색은 **색 이름**(`lavender` 등)으로 저장한다. 색 코드는 디자인 토큰에만 둔다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
+| D-054 | 색은 **색 이름**(`lavender` 등)으로 저장한다. 색 코드는 디자인 토큰에만 둔다 → 색 이름 목록은 D-057 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
 | D-055 | `cards.project_id`는 **FK ON DELETE RESTRICT**로 보호한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
+| D-056 | 디자인 언어는 사용자의 사이트 **채운(chaeun)**의 타이포그래피·색·태그 형식을 차용한다 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
+| D-057 | 색: 캔버스 `#252722`, 글자 `#f3f0e8`. Project 4색은 **mist / gold / sage / salmon**, Inbox는 **크림(`inbox`)** (D-042, D-046, D-054 개정) | 2026-10-07 | [SCREEN-SPEC 1.1](SCREEN-SPEC.md) |
+| D-058 | 디스플레이 폰트는 **Bricolage Grotesque**(D-043 개정), 본문·한글은 Pretendard | 2026-10-07 | [SCREEN-SPEC 1.2](SCREEN-SPEC.md) |
+| D-059 | 워드마크는 소문자 **`to-do zone✳`**로 표기한다. 앱 이름(D-001)은 그대로다 | 2026-10-07 | |
+| D-060 | Card는 내용으로 자동 결정되는 **크기 단계**(Focus / L / M / S / Done)를 가진다. 열 폭은 **Todo 1 : Doing 1.35 : Done 0.85** | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |
+| D-061 | 그림자·**기울기·점선을 쓰지 않는다**. 드래그 중 Card는 회전 없이 살짝 커지고, 놓일 자리는 실선 면으로 표시한다 | 2026-10-07 | [SCREEN-SPEC 1.3](SCREEN-SPEC.md) |
+| D-062 | Project마다 **아이콘 1개**(Lucide 24개 중 선택, 기본 `folder`, Inbox는 `inbox` 고정). DB에 `projects.icon`을 추가한다 | 2026-10-07 | [SCREEN-SPEC 1.4](SCREEN-SPEC.md), [DATA-MODEL](DATA-MODEL.md) |
+| D-063 | 상태 아이콘 4종(오늘 `sun`, 지난 마감 `alert-circle`, 날짜 `calendar`, 완료 `check`)은 앱이 자동으로 붙인다 | 2026-10-07 | [SCREEN-SPEC 1.4](SCREEN-SPEC.md) |
+| D-064 | Board 위에 **Hero**(날짜 eyebrow, 시간대별 영어 인사말, 한글 요약 문장)를 둔다. 요약은 필터와 무관하게 Board 전체 기준이다 | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |
+| D-065 | Project 이름은 앞뒤 공백을 제거하고 **1~30자**다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
