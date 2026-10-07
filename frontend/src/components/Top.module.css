@@ -91,8 +91,79 @@
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  align-items: flex-end;
+  gap: 14px 28px;
   padding: 0 40px 36px;
+}
+
+/* Area 묶음: 라벨 + 그 Area의 태그들 (D-085) */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupTags {
+  display: flex;
+  gap: 10px;
+}
+
+.areaLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  align-self: flex-start;
+  padding: 4px 10px 4px 6px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--paper-muted);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background var(--motion),
+    color var(--motion),
+    opacity var(--motion);
+}
+
+.areaLabel:hover:not([data-static]),
+.areaLabel[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--paper);
+}
+
+.areaLabel[data-static] {
+  cursor: default;
+}
+
+.areaLabel[data-dimmed='true'] {
+  opacity: 0.45;
+}
+
+.areaDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.areaDot[data-color='inbox'] {
+  background: var(--c-inbox);
+}
+.areaDot[data-color='mist'] {
+  background: var(--c-mist);
+}
+.areaDot[data-color='gold'] {
+  background: var(--c-gold);
+}
+.areaDot[data-color='sage'] {
+  background: var(--c-sage);
+}
+.areaDot[data-color='salmon'] {
+  background: var(--c-salmon);
 }
 
 .tag {
@@ -126,7 +197,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  align-self: center;
+  align-self: flex-end;
   padding: 12px 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
@@ -181,6 +252,16 @@
 @media (max-width: 600px) {
   .header {
     padding: 16px;
+    gap: 12px;
+  }
+  /* 좁은 화면: 한 줄 문구는 숨기고, Board/Review 전환은 로고 오른쪽에 붙인다 */
+  .note {
+    display: none;
+  }
+  .viewSwitch {
+    position: static;
+    transform: none;
+    width: 168px;
   }
   .logo {
     font-size: 28px;
@@ -204,6 +285,11 @@
     overflow-x: auto;
     padding: 0 16px 24px;
     scrollbar-width: none;
+    gap: 20px;
+  }
+  .group,
+  .tagAdd {
+    flex: none;
   }
   .tags::-webkit-scrollbar {
     display: none;

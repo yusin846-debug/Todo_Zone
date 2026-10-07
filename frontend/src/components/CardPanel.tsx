@@ -3,6 +3,7 @@ import {
   LIMITS,
   STATUSES,
   charCount,
+  type Area,
   type Card,
   type Project,
   type Status,
@@ -23,6 +24,7 @@ const clip = (text: string, max: number) =>
 /** Card 상세 패널 (SCREEN-SPEC S2, PRD F3·F4·F7) */
 export function CardPanel({
   card,
+  areas,
   projects,
   today,
   onSave,
@@ -30,6 +32,7 @@ export function CardPanel({
   onClose,
 }: {
   card: Card;
+  areas: Area[];
   projects: Project[];
   today: string;
   onSave: (patch: UpdateCardInput, status: Status | null) => void;
@@ -125,7 +128,12 @@ export function CardPanel({
 
         <div className={styles.field}>
           <span className={styles.eyebrow}>Project</span>
-          <ProjectSelect projects={projects} value={projectId} onChange={setProjectId} />
+          <ProjectSelect
+            areas={areas}
+            projects={projects}
+            value={projectId}
+            onChange={setProjectId}
+          />
         </div>
       </Panel>
 

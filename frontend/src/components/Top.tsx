@@ -1,4 +1,5 @@
-import type { Card, Project } from '@todo-zone/shared';
+import type { Area, Card, Project } from '@todo-zone/shared';
+import { colorOf, groupProjects, type Filter } from '../lib/areas.ts';
 import { progressOf, summarize } from '../lib/board.ts';
 import { eyebrowDate, greeting } from '../lib/dates.ts';
 import { Plus } from 'lucide-react';
@@ -64,53 +65,90 @@ export function Hero({ cards, today, hour }: { cards: Card[]; today: string; hou
   );
 }
 
-/** Project 태그 + 필터 (F9, D-033) */
+/**
+ * Project 태그 줄, Area별로 묶음 (F9, D-085 UI A).
+ * Area 라벨을 누르면 그 Area 전체, 태그를 누르면 그 Project로 필터한다. 필터는 한 번에 하나.
+ */
 export function ProjectTags({
+  areas,
   projects,
   cards,
   filter,
   onFilter,
   onManage,
 }: {
+  areas: Area[];
   projects: Project[];
   cards: Card[];
-  filter: string | null;
-  onFilter: (projectId: string | null) => void;
+  filter: Filter;
+  onFilter: (filter: Filter) => void;
   /** + New project: Projects 관리 패널(S3)을 연다 */
   onManage: () => void;
 }) {
-  const ordered = [...projects].sort(
-    (a, b) => Number(b.isInbox) - Number(a.isInbox) || a.createdAt.localeCompare(b.createdAt),
-  );
+  const groups = groupProjects(areas, projects).filter((g) => g.projects.length > 0);
+  const isOn = (kind: 'area' | 'project', id: string) => filter?.kind === kind && filter.id === id;
+  // 필터가 켜졌을 때 물러나는 태그: Area 필터면 그 Area 밖, Project 필터면 그 Project 밖
+  const dimmed = (p: Project) =>
+    filter !== null && !(filter.kind === 'area' ? p.areaId === filter.id : p.id === filter.id);
 
   return (
     <nav className={styles.tags} aria-label="Projects">
-      {ordered.map((p) => {
-        const { done, total, ratio } = progressOf(cards, p.id);
-        const selected = filter === p.id;
-        return (
-          <button
-            key={p.id}
-            type="button"
-            className={styles.tag}
-            data-color={p.color}
-            data-dimmed={filter !== null && !selected}
-            aria-pressed={selected}
-            onClick={() => onFilter(selected ? null : p.id)}
-          >
-            <span className={styles.tagName}>
-              <ProjectIconView icon={p.icon} size={18} />
-              {p.name}
+      {groups.map((g) => (
+        <div key={g.area?.id ?? 'none'} className={styles.group}>
+          {g.area ? (
+            <button
+              type="button"
+              className={styles.areaLabel}
+              aria-pressed={isOn('area', g.area.id)}
+              aria-label={`${g.area.name} Area 전체`}
+              data-dimmed={
+                filter !== null &&
+                !isOn('area', g.area.id) &&
+                !g.projects.some((p) => isOn('project', p.id))
+              }
+              onClick={() =>
+                onFilter(isOn('area', g.area!.id) ? null : { kind: 'area', id: g.area!.id })
+              }
+            >
+              <span className={styles.areaDot} data-color={g.area.color} />
+              {g.area.name}
+            </button>
+          ) : (
+            <span className={styles.areaLabel} data-static>
+              <span className={styles.areaDot} data-color="inbox" />
+              Unsorted
             </span>
-            <span className={styles.tagCount}>
-              {done} / {total}
-            </span>
-            <span className={styles.bar} aria-hidden="true">
-              <i style={{ width: `${Math.round(ratio * 100)}%` }} />
-            </span>
-          </button>
-        );
-      })}
+          )}
+          <div className={styles.groupTags}>
+            {g.projects.map((p) => {
+              const { done, total, ratio } = progressOf(cards, p.id);
+              const selected = isOn('project', p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={styles.tag}
+                  data-color={colorOf(p, areas)}
+                  data-dimmed={dimmed(p)}
+                  aria-pressed={selected}
+                  onClick={() => onFilter(selected ? null : { kind: 'project', id: p.id })}
+                >
+                  <span className={styles.tagName}>
+                    <ProjectIconView icon={p.icon} size={18} />
+                    {p.name}
+                  </span>
+                  <span className={styles.tagCount}>
+                    {done} / {total}
+                  </span>
+                  <span className={styles.bar} aria-hidden="true">
+                    <i style={{ width: `${Math.round(ratio * 100)}%` }} />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
       <button type="button" className={styles.tagAdd} onClick={onManage}>
         <Plus size={15} aria-hidden="true" /> New project
       </button>

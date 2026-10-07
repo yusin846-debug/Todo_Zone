@@ -1,17 +1,16 @@
 import { and, asc, count, desc, eq, ne, sql } from 'drizzle-orm';
 import {
   LIMITS,
-  nextProjectColor,
   type CreateProjectInput,
   type Project,
   type UpdateProjectInput,
 } from '@todo-zone/shared';
 import type { Db } from '../db/client.ts';
-import { cards, projects } from '../db/schema.ts';
+import { areas, cards, projects } from '../db/schema.ts';
 import { AppError, inboxLocked, notFound } from '../errors.ts';
 import { runBatch, withWriteLock } from './lock.ts';
 
-// Project 규칙 (API-SPEC 2, D-016, D-034, D-042, D-053, D-062, D-065).
+// Project 규칙 (API-SPEC 2, D-016, D-034, D-053, D-062, D-065, D-083).
 
 const nameTaken = () => new AppError(409, 'NAME_TAKEN', '이미 같은 이름의 Project가 있어요.');
 const limitReached = () =>
@@ -23,7 +22,7 @@ const nameKeyOf = (name: string) => name.trim().toLowerCase();
 const columns = {
   id: projects.id,
   name: projects.name,
-  color: projects.color,
+  areaId: projects.areaId,
   icon: projects.icon,
   isInbox: projects.isInbox,
   createdAt: projects.createdAt,
@@ -44,6 +43,13 @@ async function findProject(db: Db, id: string): Promise<Project> {
   return found;
 }
 
+/** Area가 있는지 확인한다. null은 "Area 없음"이라 통과 (D-083) */
+async function assertArea(db: Db, areaId: string | null | undefined) {
+  if (!areaId) return;
+  const [found] = await db.select({ id: areas.id }).from(areas).where(eq(areas.id, areaId));
+  if (!found) throw notFound();
+}
+
 async function assertNameFree(db: Db, name: string, exceptId?: string) {
   const key = nameKeyOf(name);
   const where = exceptId
@@ -58,6 +64,7 @@ export function createProject(db: Db, input: CreateProjectInput): Promise<Projec
     const [{ total }] = (await db.select({ total: count() }).from(projects)) as [{ total: number }];
     if (total >= LIMITS.projects) throw limitReached();
     await assertNameFree(db, input.name);
+    await assertArea(db, input.areaId);
 
     const now = new Date().toISOString();
     const [created] = await db
@@ -66,7 +73,7 @@ export function createProject(db: Db, input: CreateProjectInput): Promise<Projec
         id: crypto.randomUUID(),
         name: input.name,
         nameKey: nameKeyOf(input.name),
-        color: input.color ?? nextProjectColor(total - 1), // total에는 Inbox가 포함되어 있다
+        areaId: input.areaId ?? null,
         icon: input.icon ?? 'folder',
         isInbox: false,
         createdAt: now,
@@ -82,6 +89,7 @@ export function updateProject(db: Db, id: string, input: UpdateProjectInput): Pr
     const project = await findProject(db, id);
     if (project.isInbox) throw inboxLocked();
     if (input.name !== undefined) await assertNameFree(db, input.name, id);
+    await assertArea(db, input.areaId);
 
     const [updated] = await db
       .update(projects)

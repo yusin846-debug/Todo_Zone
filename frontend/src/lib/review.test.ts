@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import type { Card, Project } from '@todo-zone/shared';
-import { doneByProject, doneInQuarter, quarterLabel, quarterOptions } from './review.ts';
+import type { Area, Card, Project } from '@todo-zone/shared';
+import { doneByArea, doneInQuarter, quarterLabel, quarterOptions } from './review.ts';
 
 const local = (y: number, m: number, d: number) => new Date(y, m - 1, d, 12).toISOString();
-const project = (id: string, createdAt = '2026-01-01T00:00:00.000Z'): Project => ({
+const project = (
+  id: string,
+  createdAt = '2026-01-01T00:00:00.000Z',
+  areaId: string | null = null,
+): Project => ({
   id,
   name: id,
-  color: 'mist',
+  areaId,
   icon: 'folder',
   isInbox: id === 'inbox',
   createdAt,
@@ -54,22 +58,34 @@ describe('doneInQuarter', () => {
   });
 });
 
-describe('doneByProject', () => {
-  it('완료 수가 많은 순, 같으면 Project 순서. 막대 비율은 가장 많은 Project 기준', () => {
+describe('doneByArea (D-088)', () => {
+  it('Area별 완료 수(많은 순)와 그 안의 Project별 수, 막대 비율은 가장 많은 Area 기준', () => {
+    const areas: Area[] = [
+      { id: 'business', name: 'Business', color: 'gold', createdAt: '2026-01-01', updatedAt: '' },
+      { id: 'career', name: 'Career', color: 'mist', createdAt: '2026-01-02', updatedAt: '' },
+    ];
     const projects = [
       project('inbox'),
-      project('a', '2026-02-01T00:00:00.000Z'),
-      project('b', '2026-03-01T00:00:00.000Z'),
+      project('gohaet', '2026-02-01T00:00:00.000Z', 'business'),
+      project('cv', '2026-02-02T00:00:00.000Z', 'career'),
+      project('study', '2026-02-03T00:00:00.000Z', 'career'),
     ];
     const done = [
-      card('1', 'b', local(2026, 10, 1)),
-      card('2', 'b', local(2026, 10, 2)),
-      card('3', 'a', local(2026, 10, 3)),
+      card('1', 'study', local(2026, 10, 1)),
+      card('2', 'study', local(2026, 10, 2)),
+      card('3', 'cv', local(2026, 10, 3)),
+      card('4', 'gohaet', local(2026, 10, 4)),
+      card('5', 'inbox', local(2026, 10, 5)),
     ];
-    const groups = doneByProject(done, projects);
-    expect(groups.map((g) => [g.project.id, g.cards.length, g.ratio])).toEqual([
-      ['b', 2, 1],
-      ['a', 1, 0.5],
+    const groups = doneByArea(done, areas, projects);
+    expect(groups.map((g) => [g.area?.id ?? null, g.color, g.cards.length, g.ratio])).toEqual([
+      ['career', 'mist', 3, 1],
+      ['business', 'gold', 1, 1 / 3],
+      [null, 'inbox', 1, 1 / 3],
+    ]);
+    expect(groups[0]!.projects.map((x) => [x.project.id, x.count])).toEqual([
+      ['study', 2],
+      ['cv', 1],
     ]);
   });
 });

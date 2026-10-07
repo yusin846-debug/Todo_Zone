@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
-import type { Project } from '@todo-zone/shared';
+import type { Area, Project } from '@todo-zone/shared';
+import { colorOf, groupProjects } from '../lib/areas.ts';
 import { drip, dripParent, press } from '../lib/motion.ts';
 import { ProjectIconView } from './icons.tsx';
 import { Popover } from './Popover.tsx';
@@ -9,14 +10,18 @@ import styles from './Pickers.module.css';
 
 /** Project 고르기 (D-080). 색 점 + 아이콘 + 이름, 방향키·Enter·Esc. */
 export function ProjectSelect({
-  projects,
+  areas,
+  projects: unordered,
   value,
   onChange,
 }: {
+  areas: Area[];
   projects: Project[];
   value: string;
   onChange: (projectId: string) => void;
 }) {
+  // Area 묶음 순서대로 펼친다 (태그 줄과 같은 순서)
+  const projects = groupProjects(areas, unordered).flatMap((g) => g.projects);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
@@ -58,7 +63,7 @@ export function ProjectSelect({
         >
           {current && (
             <>
-              <span className={styles.dot} data-color={current.color} />
+              <span className={styles.dot} data-color={colorOf(current, areas)} />
               <ProjectIconView icon={current.icon} size={16} />
               <span className={styles.triggerText}>{current.name}</span>
             </>
@@ -100,7 +105,7 @@ export function ProjectSelect({
             onMouseEnter={() => setActive(i)}
             onClick={() => choose(i)}
           >
-            <span className={styles.dot} data-color={p.color} />
+            <span className={styles.dot} data-color={colorOf(p, areas)} />
             <ProjectIconView icon={p.icon} size={16} />
             {p.name}
           </motion.li>

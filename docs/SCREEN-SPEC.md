@@ -150,11 +150,16 @@
   - "진행 중인 카드 **n장**, 오늘 마감 **n장**" + Overdue가 있으면 "지난 마감 **n장**이 기다리고 있어요."
   - 모두 0이면 S-0 문구.
 
-**Project 태그 (F9)**
-- Project 색 면, 모서리 22px, 최소 폭 112px. 내용: 아이콘 + 이름(`tag`), "Done 수 / 전체 수"(`meta`), Progress 바(3px, `--ink` / 바탕 `--ink` 15%).
-- Inbox가 맨 앞, 나머지는 만든 순서. 줄이 넘치면 다음 줄로 감싼다(데스크톱).
-- 마지막에 `+ New project` (테두리 `--line` pill) → S3.
-- 클릭하면 필터. 필터가 켜지면 **선택되지 않은 태그가 45% 불투명도**로 물러난다. 다시 누르면 해제 (D-033).
+**Project 태그 (F9) — Area별 묶음 (D-085, UI A)**
+```
+● BUSINESS     ● CAREER              ● VENTURES                ● LIFE         ● UNSORTED
+[🍙 가게 운영]  [💼 커리어][🎓 학습]   [🌱 사이드 앱][⌨ TO-DO ZONE] [❤ 생활]      [📥 Inbox]   (+ New project)
+```
+- 묶음마다 위에 **Area 라벨**(색 점 + eyebrow 대문자). Area 순서는 만든 순서, 그 안의 Project도 만든 순서. Area 없는 Project와 Inbox는 마지막 `UNSORTED` 묶음(Inbox가 맨 뒤).
+- 태그: **Area 색 면**(D-086, Area 없으면 크림), 모서리 22px, 최소 폭 112px. 내용: 아이콘 + 이름(`tag`), "Done 수 / 전체 수"(`meta`), Progress 바(3px).
+- **Area 라벨을 누르면 그 Area 전체**, 태그를 누르면 그 Project로 필터. 필터는 한 번에 하나, 다시 누르면 해제 (D-033, D-085). 필터 밖의 태그와 라벨은 45% 불투명도로 물러난다.
+- Area 필터 중 `+ New card`는 Inbox로 만든다 (D-087).
+- 마지막에 `+ New project` (테두리 `--line` pill) → S3. 줄이 넘치면 묶음 단위로 다음 줄로 감싼다. 모바일은 한 줄 가로 스크롤.
 
 **Status 열**
 - 열 머리: eyebrow `01 / TO DO`·`02 / IN PROGRESS`·`03 / FINISHED`, 그 아래 `column` 제목 + 개수. 오른쪽에 `+ New card` 버튼(`--surface` pill). Done 열은 `+ New card` 옆에 접기 버튼(▴/▾).
@@ -223,16 +228,24 @@
 
 ### S3. Projects 관리 — F8
 
-- Project 태그 줄 끝의 `+ New project`로 연다. 새 이름 입력칸에 포커스가 간다. S2와 같은 자리(400px 패널 / 모바일 시트).
+- Project 태그 줄 끝의 `+ New project`로 연다. S2와 같은 자리(400px 패널 / 모바일 시트). **Area별로 묶어서** 보여 준다 (D-084).
 
 ```
-┌ PROJECTS ───────────────── (Close ✕) ┐
-│ (📥) Inbox                       🔒  │
-│ (📖) 학교          [색] [아이콘] [🗑] │
-│ (👣) 운동          [색] [아이콘] [🗑] │
-│ (+ New project)              5 / 20  │
-└──────────────────────────────────────┘
+┌ PROJECTS ─────────────────────── (Close ✕) ┐
+│ ● Business                            [🗑] │ ← 색 점(누르면 4색) · 이름(누르면 편집) · 삭제
+│   🍙 가게 운영             [Area 옮기기][🗑] │ ← 아이콘(누르면 25개) · 이름 · 옮기기 · 삭제
+│   + Add project                            │
+│ ● Career                              [🗑] │
+│   💼 커리어  🎓 학습 …                       │
+│ ○ Unsorted                                 │
+│   📥 Inbox                            🔒   │
+│ NEW AREA [ Area 이름을 입력하고 Enter ]       │
+│ 0 / 20         Areas 4 / 8 · Projects 7 / 20│
+└────────────────────────────────────────────┘
 ```
+
+- **Area:** 색은 4색 중 하나(같은 색 허용), 이름 1~20자(중복 금지). 지우면 확인 창: "'{이름}' Area를 삭제할까요? Project {n}개는 Unsorted로 옮겨져요. 카드는 그대로예요." 최대 8개.
+- **Project:** 아이콘 버튼은 그 Area 색으로 물든다. `Area 옮기기`를 누르면 Area 목록(+ Unsorted)이 펼쳐진다. 각 Area 아래 `+ Add project`로 그 Area에 바로 만든다.
 
 - 목록: Inbox 맨 위(자물쇠), 나머지는 만든 순서. 각 행 앞에 Project 색 원 + 아이콘.
 - 새 Project: 이름 입력 후 Enter. 색은 4색(mist → gold → sage → salmon)을 순서대로 자동, 아이콘은 `folder` (D-042, D-062). 20개면 비활성 + V3.
@@ -252,9 +265,9 @@
 │ This quarter.                                                │
 │ 8 cards done.                         ← 숫자가 0부터 올라간다   │
 │                                                              │
-│ BY PROJECT                                                   │
-│ 🎓 학습        ▬▬▬▬▬▬▬▬▬▬  3          ← 막대가 droplet으로 자람 │
-│ 💼 커리어      ▬▬▬▬▬▬      2                                   │
+│ BY AREA                                                      │
+│ ● Career       ▬▬▬▬▬▬▬▬▬▬  4          ← 막대가 droplet으로 자람 │
+│   💼 커리어 2  🎓 학습 2                                       │
 │                                                              │
 │ FINISHED                                                     │
 │ 🎓 학습                                                       │
@@ -264,8 +277,8 @@
 
 - **분기 이동:** `‹ ›`와 분기 이름 칩. 이전 분기로 가면 내용이 왼쪽에서, 다음 분기로 가면 오른쪽에서 들어온다. 이번 분기 제목은 `This quarter.`, 지난 분기는 `2026 Q3.`
 - **큰 숫자:** `{n} cards done.` (1장이면 `card`). Hero와 같은 300/800 두 줄 구성.
-- **By project:** 완료 수가 많은 순. 막대 길이 = 그 Project 완료 수 ÷ 가장 많은 Project 완료 수. 막대 색은 Project 색, 0.06초 간격으로 차례로 자란다.
-- **Finished:** Project별로 묶고, 각 줄에 ✓ + 제목 + 완료 날짜(한글). 줄은 drip으로 차례로 나타난다.
+- **By area (D-088):** 완료 수가 많은 순. 막대 길이 = 그 Area 완료 수 ÷ 가장 많은 Area 완료 수. 막대 색은 Area 색, 0.06초 간격으로 차례로 자란다. 막대 아래에 그 Area의 Project별 수(아이콘 + 이름 + 수).
+- **Finished:** Area별로 묶고, 각 줄에 ✓ + 제목 + (작게) Project 아이콘·이름 + 완료 날짜(한글). 줄은 drip으로 차례로 나타난다.
 - **Reopen (D-073):** 지난 분기 카드에만 보인다. 누르면 그 줄이 물방울처럼 줄어들며 사라지고, 카드는 Todo 맨 위로 간다. 이번 분기 카드는 Board에서 옮기면 된다.
 - **빈 분기:** "이 분기에는 끝낸 카드가 없어요."
 

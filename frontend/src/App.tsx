@@ -8,6 +8,7 @@ import { ReviewPage } from './components/ReviewPage.tsx';
 import { BoardSkeleton, ServerDown, Toast } from './components/Status.tsx';
 import { Header, Hero, ProjectTags } from './components/Top.tsx';
 import { toDateKey } from './lib/dates.ts';
+import type { Filter } from './lib/areas.ts';
 import { settle } from './lib/motion.ts';
 import { boardCards } from './lib/quarter.ts';
 import { useView, type View } from './lib/useView.ts';
@@ -53,6 +54,7 @@ function Ready({ data, view }: { data: BoardData; view: View }) {
           ) : (
             <ReviewPage
               cards={data.cards}
+              areas={data.areas}
               projects={data.projects}
               // 다시 열기 (D-073): Todo 맨 위로
               onReopen={(id) => actions.saveCard(id, {}, 'todo')}
@@ -74,7 +76,7 @@ function BoardPage({
   data: BoardData;
   actions: ReturnType<typeof useBoardActions>;
 }) {
-  const [filter, setFilter] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>(null);
   const [panel, setPanel] = useState<OpenPanel>(null);
   const projectActions = useProjectActions();
 
@@ -84,8 +86,15 @@ function BoardPage({
   // Board에는 Todo·Doing과 이번 분기 Done만 보인다. 지난 분기 Done은 Quarterly Review로 (D-072, D-075).
   const visible = boardCards(data.cards, now);
   const openCard = panel?.kind === 'card' ? data.cards.find((c) => c.id === panel.id) : undefined;
-  // 지운 Project의 필터가 남아 있지 않게 한다
-  const activeFilter = filter && data.projects.some((p) => p.id === filter) ? filter : null;
+  // 지운 Project·Area의 필터가 남아 있지 않게 한다
+  const activeFilter: Filter =
+    filter === null
+      ? null
+      : (filter.kind === 'project' ? data.projects : data.areas).some((x) => x.id === filter.id)
+        ? filter
+        : null;
+  // 새 Card: Project 필터면 그 Project, 그 밖(필터 없음, Area 필터)은 Inbox (D-018, D-087)
+  const newCardProject = activeFilter?.kind === 'project' ? activeFilter.id : inboxId;
 
   return (
     <>
@@ -93,6 +102,7 @@ function BoardPage({
       <div className={styles.page} data-panel-open={panel !== null}>
         <Hero cards={visible} today={today} hour={now.getHours()} />
         <ProjectTags
+          areas={data.areas}
           projects={data.projects}
           cards={visible}
           filter={activeFilter}
@@ -101,10 +111,11 @@ function BoardPage({
         />
         <Board
           cards={visible}
+          areas={data.areas}
           projects={data.projects}
           filter={activeFilter}
           today={today}
-          onAdd={(title, status) => actions.createCard(title, status, activeFilter ?? inboxId)}
+          onAdd={(title, status) => actions.createCard(title, status, newCardProject)}
           onOpenCard={(id) => setPanel({ kind: 'card', id })}
           drag={{
             start: actions.startDrag,
@@ -120,6 +131,7 @@ function BoardPage({
           <CardPanel
             key={openCard.id}
             card={openCard}
+            areas={data.areas}
             projects={data.projects}
             today={today}
             onSave={(patch, status) => actions.saveCard(openCard.id, patch, status)}
@@ -130,6 +142,7 @@ function BoardPage({
         {panel?.kind === 'projects' && (
           <ProjectsPanel
             key="projects"
+            areas={data.areas}
             projects={data.projects}
             cards={data.cards}
             actions={projectActions}

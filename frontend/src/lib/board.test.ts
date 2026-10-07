@@ -1,14 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Card } from '@todo-zone/shared';
-import {
-  addCard,
-  cardTier,
-  columnCards,
-  moveCard,
-  nextProjectColor,
-  progressOf,
-  summarize,
-} from './board.ts';
+import { nextAreaColor, type Card } from '@todo-zone/shared';
+import { addCard, cardTier, columnCards, moveCard, progressOf, summarize } from './board.ts';
 
 const TODAY = '2026-10-07';
 const NOW = '2026-10-07T05:00:00.000Z';
@@ -164,10 +156,10 @@ describe('progressOf (D-020)', () => {
   });
 });
 
-describe('nextProjectColor (D-042)', () => {
-  it('4색을 순서대로 돌아가며 쓴다 (Inbox 제외)', () => {
-    expect(nextProjectColor(0)).toBe('mist');
-    expect(nextProjectColor(3)).toBe('salmon');
-    expect(nextProjectColor(4)).toBe('mist');
+describe('nextAreaColor (D-084)', () => {
+  it('새 Area의 기본 색은 4색을 순서대로 돌아가며 쓴다', () => {
+    expect(nextAreaColor(0)).toBe('mist');
+    expect(nextAreaColor(3)).toBe('salmon');
+    expect(nextAreaColor(4)).toBe('mist');
   });
 });

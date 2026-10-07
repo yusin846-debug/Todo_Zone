@@ -119,4 +119,41 @@ describe('Board ↔ 서버 연결 (step11-4)', () => {
     expect(column('Done').queryAllByRole('heading', { level: 3 })).toHaveLength(0);
     fireEvent.click(screen.getByRole('button', { name: 'Done 열 펼치기' }));
   });
+
+  it('태그 줄이 Area별로 묶이고, 카드 색은 Area 색이다 (D-085, D-086)', async () => {
+    installFakeApi(fixture);
+    renderApp();
+    await screen.findByText('자격증 시험 예약');
+
+    const tags = within(screen.getByRole('navigation', { name: 'Projects' }));
+    expect(tags.getByRole('button', { name: 'Career Area 전체' })).toBeTruthy();
+    expect(tags.getByRole('button', { name: 'Ventures Area 전체' })).toBeTruthy();
+    const careerCard = screen.getByRole('button', { name: /: 자격증 시험 예약$/ });
+    expect(careerCard.getAttribute('data-color')).toBe('mist');
+    const inboxCard = screen.getByRole('button', { name: /: 읽을 책 고르기$/ });
+    expect(inboxCard.getAttribute('data-color')).toBe('inbox');
+  });
+
+  it('Area 라벨로 그 Area 전체를 필터하고, 그때 새 카드는 Inbox로 간다 (D-085, D-087)', async () => {
+    const api = installFakeApi(fixture);
+    renderApp();
+    await screen.findByText('자격증 시험 예약');
+
+    const tags = within(screen.getByRole('navigation', { name: 'Projects' }));
+    fireEvent.click(tags.getByRole('button', { name: 'Career Area 전체' }));
+    expect(heading('Todo')).toBe('Todo 1');
+
+    fireEvent.click(column('Todo').getByRole('button', { name: /New card/ }));
+    const input = screen.getByRole('textbox', { name: '새 카드 제목' });
+    fireEvent.change(input, { target: { value: '분류 전 메모' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() =>
+      expect(api.calls.find((c) => c.method === 'POST')?.body).toMatchObject({
+        projectId: 'inbox',
+      }),
+    );
+
+    fireEvent.click(tags.getByRole('button', { name: 'Career Area 전체' }));
+    expect(heading('Todo')).toBe('Todo 3');
+  });
 });

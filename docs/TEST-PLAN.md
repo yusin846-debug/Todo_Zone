@@ -51,6 +51,9 @@ PRD의 수용 기준마다 대응하는 테스트를 둔다. 테스트 도구는
 | F11 | 분기 목록·분기별 완료·Project 묶음·비율 | `review.test` | 로직 |
 | F11 | #review 진입·유지, 완료 수, 빈 분기 문구 | `Review.test` | 화면 |
 | D-080 | 날짜 빠른 선택·달력, Project 목록, Status 방향키 | `dates.test` · `Panels.test` | 로직·화면 |
+| D-083~D-088 | Area API(기본 4개, 8개 제한, 이름 중복, 삭제 시 Unsorted), DB 제약(Inbox는 Area 없음, SET NULL) | `areas.api.test` · `projects.api.test` · `constraints.test` | API |
+| D-085~D-087 | Area 묶음 태그, Area 필터, Area 필터 중 새 카드 → Inbox, 카드 색 = Area 색, Area 옮기기·만들기·삭제 | `areas.test` · `App.test` · `Panels.test` | 로직·화면 |
+| D-088 | Review의 Area별 막대·Project별 수 | `review.test` · `Review.test` | 로직·화면 |
 
 ## 3. 데이터 안전장치 테스트 (DATA-MODEL 5)
 

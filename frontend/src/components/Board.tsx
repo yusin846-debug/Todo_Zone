@@ -18,7 +18,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
-import { STATUSES, type Card, type Project, type Status } from '@todo-zone/shared';
+import { STATUSES, type Area, type Card, type Project, type Status } from '@todo-zone/shared';
+import { colorOf, matchesFilter, type Filter } from '../lib/areas.ts';
 import { cardTier, columnCards } from '../lib/board.ts';
 import { LiftedCard, SortableCard } from './CardItem.tsx';
 import { NewCardInput } from './NewCardInput.tsx';
@@ -43,7 +44,8 @@ function readCollapsed(): boolean {
 type Props = {
   cards: Card[];
   projects: Project[];
-  filter: string | null;
+  areas: Area[];
+  filter: Filter;
   today: string;
   onAdd: (title: string, status: Status) => void;
   onOpenCard: (cardId: string) => void;
@@ -56,7 +58,7 @@ type Props = {
   };
 };
 
-export function Board({ cards, projects, filter, today, onAdd, onOpenCard, drag }: Props) {
+export function Board({ cards, areas, projects, filter, today, onAdd, onOpenCard, drag }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [composing, setComposing] = useState<Status | null>(null);
   const [doneCollapsed, setDoneCollapsed] = useState(readCollapsed);
@@ -72,7 +74,9 @@ export function Board({ cards, projects, filter, today, onAdd, onOpenCard, drag 
   );
 
   const projectOf = (id: string) => projects.find((p) => p.id === id)!;
-  const visible = (status: Status) => columnCards(cards, status, filter);
+  const visible = (status: Status) =>
+    columnCards(cards, status, null).filter((c) => matchesFilter(c, filter, projects));
+  const colorFor = (projectId: string) => colorOf(projectOf(projectId), areas);
   const statusOf = (id: string): Status | null => {
     if (id.startsWith('column:')) return id.slice('column:'.length) as Status;
     return cards.find((c) => c.id === id)?.status ?? null;
@@ -198,6 +202,7 @@ export function Board({ cards, projects, filter, today, onAdd, onOpenCard, drag 
                         key={card.id}
                         card={card}
                         project={projectOf(card.projectId)}
+                        color={colorFor(card.projectId)}
                         tier={cardTier(card, card.id === focusId)}
                         today={today}
                         onOpen={() => onOpenCard(card.id)}
@@ -205,9 +210,11 @@ export function Board({ cards, projects, filter, today, onAdd, onOpenCard, drag 
                     ))}
                     {list.length === 0 && (
                       <p className={styles.empty}>
-                        {filter !== null
-                          ? '이 Project에는 아직 카드가 없어요'
-                          : COLUMN[status].empty}
+                        {filter === null
+                          ? COLUMN[status].empty
+                          : filter.kind === 'area'
+                            ? '이 Area에는 아직 카드가 없어요'
+                            : '이 Project에는 아직 카드가 없어요'}
                       </p>
                     )}
                   </div>
@@ -223,6 +230,7 @@ export function Board({ cards, projects, filter, today, onAdd, onOpenCard, drag 
           <LiftedCard
             card={active}
             project={projectOf(active.projectId)}
+            color={colorFor(active.projectId)}
             tier={cardTier(active, active.id === focusId)}
             today={today}
           />

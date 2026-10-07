@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LIMITS, PROJECT_COLORS, PROJECT_ICONS, STATUSES, charCount } from './constants.ts';
+import { AREA_COLORS, LIMITS, PROJECT_ICONS, STATUSES, charCount } from './constants.ts';
 
 // API 요청의 형태와 입력 제한 (docs/API-SPEC.md). message는 화면에 그대로 보여 줄 한글 문장이다.
 
@@ -38,7 +38,12 @@ const projectName = z
   .min(1, 'Project 이름을 입력해 주세요.')
   .refine(withinChars(LIMITS.projectName), 'Project 이름은 30자까지 쓸 수 있어요.');
 
-const projectColor = z.enum(PROJECT_COLORS, { error: '고를 수 없는 색이에요.' });
+const areaColor = z.enum(AREA_COLORS, { error: '고를 수 없는 색이에요.' });
+const areaName = z
+  .string({ error: 'Area 이름을 입력해 주세요.' })
+  .trim()
+  .min(1, 'Area 이름을 입력해 주세요.')
+  .refine(withinChars(LIMITS.areaName), `Area 이름은 ${LIMITS.areaName}자까지 쓸 수 있어요.`);
 const projectIcon = z.enum(PROJECT_ICONS, { error: '고를 수 없는 아이콘이에요.' });
 
 const nonEmpty = (o: object) => Object.keys(o).length > 0;
@@ -67,15 +72,27 @@ export const moveCardInput = z.strictObject({
 
 export const createProjectInput = z.strictObject({
   name: projectName,
-  color: projectColor.optional(),
   icon: projectIcon.optional(),
+  areaId: id.nullable().optional(),
 });
 
 export const updateProjectInput = z
-  .strictObject({ name: projectName, color: projectColor, icon: projectIcon })
+  .strictObject({ name: projectName, icon: projectIcon, areaId: id.nullable() })
   .partial()
   .refine(nonEmpty, '바꿀 내용이 없어요.');
 
+export const createAreaInput = z.strictObject({
+  name: areaName,
+  color: areaColor.optional(),
+});
+
+export const updateAreaInput = z
+  .strictObject({ name: areaName, color: areaColor })
+  .partial()
+  .refine(nonEmpty, '바꿀 내용이 없어요.');
+
+export type CreateAreaInput = z.infer<typeof createAreaInput>;
+export type UpdateAreaInput = z.infer<typeof updateAreaInput>;
 export type CreateCardInput = z.infer<typeof createCardInput>;
 export type UpdateCardInput = z.infer<typeof updateCardInput>;
 export type MoveCardInput = z.infer<typeof moveCardInput>;

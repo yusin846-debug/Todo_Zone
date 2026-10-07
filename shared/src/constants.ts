@@ -5,13 +5,17 @@ export const LIMITS = {
   cardMemo: 2000, // D-031
   projectName: 30, // D-065
   projects: 20, // D-034 (Inbox 포함)
+  areas: 8, // D-084
+  areaName: 20, // D-084
 } as const;
 
 export const STATUSES = ['todo', 'doing', 'done'] as const; // D-010
 export type Status = (typeof STATUSES)[number];
 
-export const PROJECT_COLORS = ['mist', 'gold', 'sage', 'salmon'] as const; // D-057
-export type ProjectColor = (typeof PROJECT_COLORS)[number] | 'inbox';
+// D-086: 색은 Area가 가진다. 카드 색 = Project의 Area 색, Area가 없으면 'inbox'(크림)
+export const AREA_COLORS = ['mist', 'gold', 'sage', 'salmon'] as const; // D-057
+export type AreaColor = (typeof AREA_COLORS)[number];
+export type CardColor = AreaColor | 'inbox';
 
 // D-062, D-078: 아이콘 이름 (Lucide 24개 + 직접 그린 gimbap). 새 Project 기본값은 'folder', 'inbox'는 Inbox 전용.
 export const PROJECT_ICONS = [

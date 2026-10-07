@@ -203,16 +203,19 @@ describe('Projects 관리 (S3, F8)', () => {
     return panel('Projects');
   }
 
-  it('이름을 입력하고 Enter로 만든다', async () => {
+  it('Area 묶음 안에서 "Add project"로 그 Area의 Project를 만든다 (D-084)', async () => {
     const api = installFakeApi(fixture);
     renderApp();
     const p = await openProjects();
 
-    const input = p.getByRole('textbox', { name: '새 Project 이름' });
+    fireEvent.click(p.getByRole('button', { name: 'Ventures에 Project 추가' }));
+    const input = p.getByRole('textbox', { name: 'Ventures에 새 Project' });
     fireEvent.change(input, { target: { value: '샛별밤' } });
     fireEvent.keyDown(input, { key: 'Enter' });
 
-    await waitFor(() => expect(api.projects().map((x) => x.name)).toContain('샛별밤'));
+    await waitFor(() =>
+      expect(api.projects().find((x) => x.name === '샛별밤')?.areaId).toBe('a-ventures'),
+    );
     const tags = within(screen.getByRole('navigation', { name: 'Projects' }));
     expect(await tags.findByRole('button', { name: /샛별밤/ })).toBeTruthy();
   });
@@ -222,7 +225,8 @@ describe('Projects 관리 (S3, F8)', () => {
     renderApp();
     const p = await openProjects();
 
-    const input = p.getByRole('textbox', { name: '새 Project 이름' });
+    fireEvent.click(p.getByRole('button', { name: 'Career에 Project 추가' }));
+    const input = p.getByRole('textbox', { name: 'Career에 새 Project' });
     fireEvent.change(input, { target: { value: '커리어' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(await p.findByText('이미 같은 이름의 Project가 있어요.')).toBeTruthy();
@@ -267,5 +271,45 @@ describe('Projects 관리 (S3, F8)', () => {
 
     await waitFor(() => expect(api.projects().some((x) => x.name === '커리어')).toBe(false));
     expect(api.cards().every((c) => c.projectId === 'inbox')).toBe(true);
+  });
+
+  it('Project를 다른 Area로 옮기면 카드 색이 그 Area 색이 된다 (D-086)', async () => {
+    const api = installFakeApi(fixture);
+    renderApp();
+    const p = await openProjects();
+
+    fireEvent.click(p.getByRole('button', { name: '커리어 Area 옮기기' }));
+    fireEvent.click(
+      within(p.getByRole('group', { name: 'Area 고르기' })).getByRole('button', {
+        name: /Ventures/,
+      }),
+    );
+    await waitFor(() =>
+      expect(api.projects().find((x) => x.id === 'career')?.areaId).toBe('a-ventures'),
+    );
+    const cardEl = await screen.findByRole('button', { name: /: 자격증 시험 예약$/ });
+    await waitFor(() => expect(cardEl.getAttribute('data-color')).toBe('salmon'));
+  });
+
+  it('새 Area를 만들고, Area를 지우면 확인 창에 옮겨질 Project 수가 보인다', async () => {
+    const api = installFakeApi(fixture);
+    renderApp();
+    const p = await openProjects();
+
+    const input = p.getByRole('textbox', { name: '새 Area 이름' });
+    fireEvent.change(input, { target: { value: 'Family' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() => expect(api.areas().map((a) => a.name)).toContain('Family'));
+
+    fireEvent.click(p.getByRole('button', { name: 'Career Area 삭제' }));
+    expect(
+      screen.getByText(
+        "'Career' Area를 삭제할까요? Project 1개는 Unsorted로 옮겨져요. 카드는 그대로예요.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }),
+    );
+    await waitFor(() => expect(api.projects().find((x) => x.id === 'career')?.areaId).toBeNull());
   });
 });

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useSpring, useTransform } from 'motion/react';
 import { Check, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
-import type { Card, Project } from '@todo-zone/shared';
+import type { Area, Card, Project } from '@todo-zone/shared';
 import { formatKoreanDate, toDateKey } from '../lib/dates.ts';
 import { droplet, drip, dripParent, press, settle } from '../lib/motion.ts';
 import { quarterKey } from '../lib/quarter.ts';
-import { doneByProject, doneInQuarter, quarterLabel, quarterOptions } from '../lib/review.ts';
+import { doneByArea, doneInQuarter, quarterLabel, quarterOptions } from '../lib/review.ts';
 import { ProjectIconView } from './icons.tsx';
 import styles from './ReviewPage.module.css';
 
@@ -20,10 +20,12 @@ function CountUp({ value }: { value: number }) {
 /** Quarterly Review (SCREEN-SPEC S5, PRD F10·F11) */
 export function ReviewPage({
   cards,
+  areas,
   projects,
   onReopen,
 }: {
   cards: Card[];
+  areas: Area[];
   projects: Project[];
   onReopen: (cardId: string) => void;
 }) {
@@ -36,7 +38,8 @@ export function ReviewPage({
   const key = options[index]!;
 
   const done = doneInQuarter(cards, key);
-  const groups = doneByProject(done, projects);
+  const groups = doneByArea(done, areas, projects);
+  const projectOf = (id: string) => projects.find((p) => p.id === id);
   const isCurrent = key === current;
 
   function go(step: number) {
@@ -122,24 +125,33 @@ export function ReviewPage({
             <p className={styles.empty}>이 분기에는 끝낸 카드가 없어요.</p>
           ) : (
             <>
-              <h2 className={styles.eyebrow}>By project</h2>
+              <h2 className={styles.eyebrow}>By area</h2>
               <ul className={styles.bars}>
                 {groups.map((g, i) => (
-                  <li key={g.project.id} className={styles.barRow}>
+                  <li key={g.area?.id ?? 'none'} className={styles.barRow}>
                     <span className={styles.barName}>
-                      <ProjectIconView icon={g.project.icon} size={16} />
-                      {g.project.name}
+                      <span className={styles.dot} data-color={g.color} />
+                      {g.area?.name ?? 'Unsorted'}
                     </span>
                     <span className={styles.barTrack}>
                       <motion.span
                         className={styles.barFill}
-                        data-color={g.project.color}
+                        data-color={g.color}
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.max(g.ratio * 100, 4)}%` }}
                         transition={{ ...droplet, delay: 0.15 + i * 0.06 }}
                       />
                     </span>
                     <span className={styles.barCount}>{g.cards.length}</span>
+                    {/* 그 Area 안의 Project별 수 (D-088) */}
+                    <span className={styles.barProjects}>
+                      {g.projects.map(({ project, count }) => (
+                        <span key={project.id} className={styles.barProject}>
+                          <ProjectIconView icon={project.icon} size={13} />
+                          {project.name} {count}
+                        </span>
+                      ))}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -147,10 +159,13 @@ export function ReviewPage({
               <h2 className={styles.eyebrow}>Finished</h2>
               <div className={styles.groups}>
                 {groups.map((g) => (
-                  <section key={g.project.id} aria-label={`${g.project.name} 완료 목록`}>
+                  <section
+                    key={g.area?.id ?? 'none'}
+                    aria-label={`${g.area?.name ?? 'Unsorted'} 완료 목록`}
+                  >
                     <h3 className={styles.groupTitle}>
-                      <span className={styles.dot} data-color={g.project.color} />
-                      {g.project.name}
+                      <span className={styles.dot} data-color={g.color} />
+                      {g.area?.name ?? 'Unsorted'}
                     </h3>
                     <motion.ul
                       className={styles.list}
@@ -159,39 +174,50 @@ export function ReviewPage({
                       animate="shown"
                     >
                       <AnimatePresence initial={false}>
-                        {g.cards.map((c) => (
-                          <motion.li
-                            key={c.id}
-                            layout
-                            variants={drip}
-                            exit={{
-                              opacity: 0,
-                              scale: 0.6,
-                              borderRadius: 40,
-                              transition: { duration: 0.2 },
-                            }}
-                            className={styles.item}
-                          >
-                            <span className={styles.check} data-color={g.project.color}>
-                              <Check size={12} strokeWidth={2.5} aria-hidden="true" />
-                            </span>
-                            <span className={styles.itemTitle}>{c.title}</span>
-                            <span className={styles.itemDate}>
-                              {formatKoreanDate(toDateKey(new Date(c.completedAt!)))}
-                            </span>
-                            {!isCurrent && (
-                              <motion.button
-                                type="button"
-                                className={styles.reopen}
-                                aria-label={`${c.title} 다시 열기`}
-                                onClick={() => onReopen(c.id)}
-                                {...press}
-                              >
-                                <RotateCcw size={13} aria-hidden="true" /> Reopen
-                              </motion.button>
-                            )}
-                          </motion.li>
-                        ))}
+                        {g.cards.map((c) => {
+                          const project = projectOf(c.projectId);
+                          return (
+                            <motion.li
+                              key={c.id}
+                              layout
+                              variants={drip}
+                              exit={{
+                                opacity: 0,
+                                scale: 0.6,
+                                borderRadius: 40,
+                                transition: { duration: 0.2 },
+                              }}
+                              className={styles.item}
+                            >
+                              <span className={styles.check} data-color={g.color}>
+                                <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+                              </span>
+                              <span className={styles.itemTitle}>
+                                {c.title}
+                                {project && (
+                                  <span className={styles.itemProject}>
+                                    <ProjectIconView icon={project.icon} size={12} />
+                                    {project.name}
+                                  </span>
+                                )}
+                              </span>
+                              <span className={styles.itemDate}>
+                                {formatKoreanDate(toDateKey(new Date(c.completedAt!)))}
+                              </span>
+                              {!isCurrent && (
+                                <motion.button
+                                  type="button"
+                                  className={styles.reopen}
+                                  aria-label={`${c.title} 다시 열기`}
+                                  onClick={() => onReopen(c.id)}
+                                  {...press}
+                                >
+                                  <RotateCcw size={13} aria-hidden="true" /> Reopen
+                                </motion.button>
+                              )}
+                            </motion.li>
+                          );
+                        })}
                       </AnimatePresence>
                     </motion.ul>
                   </section>

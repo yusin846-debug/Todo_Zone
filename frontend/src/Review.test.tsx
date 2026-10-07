@@ -56,7 +56,7 @@ describe('Quarterly Review (S5, F10·F11)', () => {
     expect(screen.getByRole('radio', { name: 'Review' }).getAttribute('aria-checked')).toBe('true');
   });
 
-  it('이번 분기 완료 수와 Project별 묶음을 보여 준다', async () => {
+  it('이번 분기 완료 수와 Area별 묶음을 보여 준다', async () => {
     installFakeApi(fixture);
     renderApp();
     await openReview();
@@ -64,7 +64,8 @@ describe('Quarterly Review (S5, F10·F11)', () => {
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('3 cards done.'),
     );
-    const career = within(screen.getByRole('region', { name: '커리어 완료 목록' }));
+    // Area별 묶음 (D-088): Career Area에 커리어 카드 2장
+    const career = within(screen.getByRole('region', { name: 'Career 완료 목록' }));
     expect(career.getAllByRole('listitem')).toHaveLength(2);
     expect(screen.queryByText('작년에 끝낸 일')).toBeNull();
     // 이번 분기 카드에는 Reopen이 없다 (Board에서 옮긴다)

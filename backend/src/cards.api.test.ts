@@ -9,8 +9,8 @@ describe('GET /api/board', () => {
     expect(projects[0]).toMatchObject({
       name: 'Inbox',
       isInbox: true,
-      color: 'inbox',
       icon: 'inbox',
+      areaId: null,
     });
     expect(cards).toEqual([]);
   });

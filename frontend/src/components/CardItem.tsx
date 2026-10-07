@@ -2,13 +2,13 @@ import type { CSSProperties } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Calendar, Check, CircleAlert, Sun } from 'lucide-react';
-import type { Card, Project } from '@todo-zone/shared';
+import type { Card, CardColor, Project } from '@todo-zone/shared';
 import type { CardTier } from '../lib/board.ts';
 import { dueLabel } from '../lib/dates.ts';
 import { ProjectIconView } from './icons.tsx';
 import styles from './Board.module.css';
 
-type Props = { card: Card; project: Project; tier: CardTier; today: string };
+type Props = { card: Card; project: Project; color: CardColor; tier: CardTier; today: string };
 
 /** 날짜 배지 + 상태 아이콘 (D-017, D-063) */
 function DueBadge({ card, today }: { card: Card; today: string }) {
@@ -25,11 +25,11 @@ function DueBadge({ card, today }: { card: Card; today: string }) {
 }
 
 /** Card 한 장의 모양. 크기 단계는 SCREEN-SPEC S1 (D-060). */
-export function CardView({ card, project, tier, today }: Props) {
+export function CardView({ card, project, color, tier, today }: Props) {
   if (tier === 'done') {
     return (
       <>
-        <span className={styles.doneChip} data-color={project.color}>
+        <span className={styles.doneChip} data-color={color}>
           <Check size={13} strokeWidth={2.5} aria-hidden="true" />
         </span>
         <h3 className={styles.title}>{card.title}</h3>
@@ -104,7 +104,7 @@ export function SortableCard(props: Props & { onOpen: () => void }) {
       style={style}
       className={styles.card}
       data-tier={tier}
-      data-color={project.color}
+      data-color={props.color}
       data-placeholder={isDragging}
       aria-label={`${project.name}: ${card.title}`}
       {...attributes}
@@ -124,12 +124,7 @@ export function SortableCard(props: Props & { onOpen: () => void }) {
 /** DragOverlay에 그리는 집힌 Card: 회전 없이 살짝 커진다 (D-061). */
 export function LiftedCard(props: Props) {
   return (
-    <article
-      className={styles.card}
-      data-tier={props.tier}
-      data-color={props.project.color}
-      data-lifted
-    >
+    <article className={styles.card} data-tier={props.tier} data-color={props.color} data-lifted>
       <CardView {...props} />
     </article>
   );

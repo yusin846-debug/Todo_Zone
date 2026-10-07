@@ -1,12 +1,20 @@
-import type { ProjectColor, ProjectIcon, Status } from './constants.ts';
+import type { AreaColor, ProjectIcon, Status } from './constants.ts';
 
 export type HealthResponse = { status: 'ok' };
 
 // docs/DATA-MODEL.md 2장의 행 모양. API 응답도 이 모양을 쓴다.
+export type Area = {
+  id: string;
+  name: string;
+  color: AreaColor;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Project = {
   id: string;
   name: string;
-  color: ProjectColor;
+  areaId: string | null; // D-083. Inbox는 항상 null
   icon: ProjectIcon;
   isInbox: boolean;
   createdAt: string; // UTC ISO 8601

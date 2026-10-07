@@ -2,26 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { setup } from './test-helpers.ts';
 
 describe('POST /api/projects (F8)', () => {
-  it('색은 4색을 순서대로, 아이콘은 folder가 기본값이다 (D-042, D-062)', async () => {
+  it('기본값: 아이콘 folder, Area 없음. 색 필드는 없다 (D-062, D-086)', async () => {
     const { api } = await setup();
-    const colors = [];
-    for (const name of ['A', 'B', 'C', 'D', 'E']) {
-      const res = await api.post('/api/projects').send({ name }).expect(201);
-      colors.push(res.body.color);
-      expect(res.body.icon).toBe('folder');
-      expect(res.body.isInbox).toBe(false);
-    }
-    expect(colors).toEqual(['mist', 'gold', 'sage', 'salmon', 'mist']);
+    const res = await api.post('/api/projects').send({ name: 'A' }).expect(201);
+    expect(res.body).toMatchObject({ icon: 'folder', areaId: null, isInbox: false });
+    expect(res.body).not.toHaveProperty('color');
+    await api.post('/api/projects').send({ name: 'B', color: 'mist' }).expect(400);
   });
 
-  it('고른 색과 아이콘을 쓰고, inbox 색·아이콘은 고를 수 없다', async () => {
-    const { api } = await setup();
+  it('고른 아이콘과 Area를 쓰고, inbox 아이콘이나 없는 Area는 거부한다', async () => {
+    const { api, areaId } = await setup();
+    const career = await areaId('Career');
     const res = await api
       .post('/api/projects')
-      .send({ name: '학교', color: 'sage', icon: 'graduation-cap' })
+      .send({ name: '학습', icon: 'graduation-cap', areaId: career })
       .expect(201);
-    expect(res.body).toMatchObject({ name: '학교', color: 'sage', icon: 'graduation-cap' });
-    await api.post('/api/projects').send({ name: 'x', color: 'inbox' }).expect(400);
+    expect(res.body).toMatchObject({ name: '학습', icon: 'graduation-cap', areaId: career });
+    await api.post('/api/projects').send({ name: 'x', areaId: 'nope' }).expect(404);
     await api.post('/api/projects').send({ name: 'y', icon: 'inbox' }).expect(400);
     await api.post('/api/projects').send({ name: 'z', icon: 'rocket' }).expect(400);
     // 직접 그린 김밥 아이콘도 허용 목록에 있다 (D-078)
@@ -66,14 +63,18 @@ describe('POST /api/projects (F8)', () => {
 });
 
 describe('PATCH /api/projects/:id (F8)', () => {
-  it('이름·색·아이콘을 바꾸고, 자기 이름의 대소문자만 바꾸는 것은 된다', async () => {
-    const { api, addProject } = await setup();
+  it('이름·아이콘·Area를 바꾸고, 자기 이름의 대소문자만 바꾸는 것은 된다', async () => {
+    const { api, addProject, areaId } = await setup();
     const p = await addProject('work');
+    const business = await areaId('Business');
     const res = await api
       .patch(`/api/projects/${p.id}`)
-      .send({ name: 'Work', color: 'gold', icon: 'briefcase' })
+      .send({ name: 'Work', icon: 'briefcase', areaId: business })
       .expect(200);
-    expect(res.body).toMatchObject({ name: 'Work', color: 'gold', icon: 'briefcase' });
+    expect(res.body).toMatchObject({ name: 'Work', icon: 'briefcase', areaId: business });
+
+    const cleared = await api.patch(`/api/projects/${p.id}`).send({ areaId: null }).expect(200);
+    expect(cleared.body.areaId).toBeNull();
   });
 
   it('다른 Project 이름으로는 못 바꾼다', async () => {

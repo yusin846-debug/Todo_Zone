@@ -37,7 +37,7 @@
 | D-030 | 저장소에는 `skills-lock.json`만 올리고 `.agents/`, `.claude/skills/`는 올리지 않는다. 스킬은 `npx skills experimental_install`로 다시 설치한다 | 2026-10-07 | |
 | D-031 | Card 제목은 최대 **100자**, 메모는 최대 **2,000자**다 | 2026-10-07 | |
 | D-032 | Inbox의 Card 색은 **흰색(`#F0F0F0`)으로 고정**한다 | 2026-10-07 | |
-| D-033 | Project 필터는 **한 번에 하나**만 선택한다. 같은 Project를 다시 누르면 해제된다 | 2026-10-07 | D-018과 일관 |
+| D-033 | Project 필터는 **한 번에 하나**만 선택한다. 같은 Project를 다시 누르면 해제된다 → Area 필터 추가 D-085 | 2026-10-07 | D-018과 일관 |
 | D-034 | Project는 Inbox를 포함해 최대 **20개**다 | 2026-10-07 | |
 | D-035 | API는 **REST + JSON**, 경로는 `/api/*`다 | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
 | D-036 | DB 접근은 **Drizzle ORM + libSQL 클라이언트**로 한다. 로컬은 `file:`, 배포 시 Turso(`libsql://`)로 바꾼다 | 2026-10-07 | [ADR-0005](adr/0005-drizzle-libsql-deploy-ready.md) |
@@ -46,7 +46,7 @@
 | D-039 | 스타일은 **CSS Modules + CSS 변수(디자인 토큰)**로 한다 | 2026-10-07 | |
 | D-040 | 개발은 루트에서 `npm run dev` 한 번으로 실행한다. frontend는 5173, backend는 **127.0.0.1:3000**이고 Vite가 `/api`를 백엔드로 넘긴다(프록시) | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
 | D-041 | MVP는 **로컬 전용**이다. MVP 이후 **Vercel 배포** 마일스톤을 둔다. 배포 전에 인증을 추가하도록 ADR-0002를 재검토한다 | 2026-10-07 | [ADR-0005](adr/0005-drizzle-libsql-deploy-ready.md) |
-| D-042 | 일반 Project는 **4색**(라벤더, 버터, 세이지, 살구)에서만 고른다. **흰색은 Inbox 전용**이다. 새 Project의 색은 4색을 순서대로 돌아가며 자동 지정한다 (D-016 개정) → 색 이름은 D-057로 개정 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
+| D-042 | 일반 Project는 **4색**(라벤더, 버터, 세이지, 살구)에서만 고른다. **흰색은 Inbox 전용**이다. 새 Project의 색은 4색을 순서대로 돌아가며 자동 지정한다 (D-016 개정) → 색 이름은 D-057로 개정 → **D-086으로 대체** (색은 Area가 가진다) | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
 | D-043 | 영어 타이틀 폰트는 **Inter Tight**, 한글·본문은 **Pretendard**다 → **D-058로 개정** (Bricolage Grotesque) | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
 | D-044 | Pretendard는 **jsDelivr CDN**, Inter Tight는 Google Fonts에서 불러온다 | 2026-10-07 | |
 | D-045 | Done 열은 **펼친 상태로 시작**하고, 접힘 상태는 브라우저(localStorage)에 기억한다 | 2026-10-07 | |
@@ -61,7 +61,7 @@
 | D-054 | 색은 **색 이름**(`lavender` 등)으로 저장한다. 색 코드는 디자인 토큰에만 둔다 → 색 이름 목록은 D-057 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
 | D-055 | `cards.project_id`는 **FK ON DELETE RESTRICT**로 보호한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
 | D-056 | 디자인 언어는 사용자의 사이트 **채운(chaeun)**의 타이포그래피·색·태그 형식을 차용한다 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
-| D-057 | 색: 캔버스 `#252722`, 글자 `#f3f0e8`. Project 4색은 **mist / gold / sage / salmon**, Inbox는 **크림(`inbox`)** (D-042, D-046, D-054 개정) | 2026-10-07 | [SCREEN-SPEC 1.1](SCREEN-SPEC.md) |
+| D-057 | 색: 캔버스 `#252722`, 글자 `#f3f0e8`. Project 4색은 **mist / gold / sage / salmon**, Inbox는 **크림(`inbox`)** (D-042, D-046, D-054 개정) → Project 색은 D-086으로 대체 (팔레트 값은 유지) | 2026-10-07 | [SCREEN-SPEC 1.1](SCREEN-SPEC.md) |
 | D-058 | 디스플레이 폰트는 **Bricolage Grotesque**(D-043 개정), 본문·한글은 Pretendard | 2026-10-07 | [SCREEN-SPEC 1.2](SCREEN-SPEC.md) |
 | D-059 | 워드마크는 소문자 **`to-do zone✳`**로 표기한다. 앱 이름(D-001)은 그대로다 | 2026-10-07 | |
 | D-060 | Card는 내용으로 자동 결정되는 **크기 단계**(Focus / L / M / S / Done)를 가진다. 열 폭은 **Todo 1 : Doing 1.35 : Done 0.85** | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |
@@ -82,8 +82,14 @@
 | D-075 | Board의 Done 열·열 개수·Project Progress는 **보이는 Card 기준**(Todo + Doing + 이번 분기 Done)이다 | 2026-10-07 | |
 | D-076 | 사용자의 실제(개인) 데이터는 **저장소에 커밋하지 않는다**(public 저장소). 로컬 DB에만 둔다 | 2026-10-07 | |
 | D-077 | 커밋 작성자 이름은 **Yusin Kim**이다 (이전 커밋은 그대로 둔다) | 2026-10-07 | |
-| D-078 | Project 아이콘에 직접 그린 **`gimbap`(김밥 단면)**을 추가한다(총 25개). 고른햇살 Project에 쓴다 | 2026-10-07 | [SCREEN-SPEC 1.4](SCREEN-SPEC.md) |
+| D-078 | Project 아이콘에 직접 그린 **`gimbap`(김밥 단면)**을 추가한다(총 25개). 사업(Business) 관련 Project에 쓴다 | 2026-10-07 | [SCREEN-SPEC 1.4](SCREEN-SPEC.md) |
 | D-079 | 애니메이션은 **`motion`** 라이브러리로 한다. 모션 언어는 **"물방울"**: 탄성 스프링, 누를 때 눌림, 맺히듯 나타남, 선택 표시가 흘러가듯 이동. 출렁임은 오류처럼 보이지 않을 만큼만 | 2026-10-07 | [SCREEN-SPEC 1.5](SCREEN-SPEC.md) |
 | D-080 | 상세 패널의 선택 칸은 브라우저 기본 부품 대신 직접 만든다: Status는 3칸 토글, Project는 아이콘이 보이는 목록, Due date는 빠른 선택 + 한글 미니 달력("10월 14일 (수)") | 2026-10-07 | [SCREEN-SPEC S2](SCREEN-SPEC.md) |
 | D-081 | Quarterly Review는 헤더의 **Board / Review 전환**으로 들어가고, 주소는 **`#review`**다 (라우터 패키지 없음) | 2026-10-07 | [SCREEN-SPEC S5](SCREEN-SPEC.md) |
 | D-082 | 운영체제의 **"동작 줄이기"** 설정을 켠 사용자에게는 애니메이션을 끈다 | 2026-10-07 | |
+| D-083 | Project 위에 **Area** 층을 둔다: Area → Project → Card. Project는 Area 0개 또는 1개에 속하고, Inbox는 Area 밖이다 | 2026-10-07 | [ADR-0008](adr/0008-area-owns-color.md) |
+| D-084 | 기본 Area는 **Business / Career / Ventures / Life** 4개다. 사용자가 추가·이름 변경·삭제할 수 있다(최대 8개). Area를 지우면 그 Project는 Area 없음이 된다 | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
+| D-085 | Project 태그 줄을 **Area별로 묶는다**(UI A). Area 라벨을 누르면 그 Area 전체로, Project 태그를 누르면 그 Project로 필터한다. 필터는 한 번에 하나 (D-033 확장) | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |
+| D-086 | **카드 색은 Area가 정한다**: Business gold, Career mist, Ventures salmon, Life sage. Area 없는 Project와 Inbox는 크림. Project는 아이콘으로 구분하고 Project 색 고르기는 없앤다 (D-042 대체) | 2026-10-07 | [ADR-0008](adr/0008-area-owns-color.md) |
+| D-087 | Area 필터가 켜진 상태의 새 Card는 **Inbox**로 간다 | 2026-10-07 | D-018과 일관 |
+| D-088 | Quarterly Review의 막대는 **Area별**이고, 그 안에 Project별 수를 보인다 | 2026-10-07 | [SCREEN-SPEC S5](SCREEN-SPEC.md) |

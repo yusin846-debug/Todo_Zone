@@ -162,7 +162,117 @@
   cursor: default;
 }
 
-/* ---------- Projects ---------- */
+/* ---------- Projects (Area별 묶음, D-084) ---------- */
+
+.areaSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.areaHead {
+  display: grid;
+  grid-template-columns: 22px 1fr 36px;
+  align-items: center;
+  gap: 10px;
+}
+
+.areaName {
+  font-family: var(--font-display);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.areaName .nameBtn {
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 16px;
+}
+
+.rowActions {
+  display: flex;
+}
+
+.addRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 6px 10px;
+  margin-left: 40px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--paper-muted);
+  font: 600 13px/1 var(--font-body);
+  cursor: pointer;
+}
+
+.addRow:hover:not(:disabled) {
+  background: var(--line);
+  color: var(--paper);
+}
+
+.movePicker {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.moveOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--paper);
+  font: 600 13px/1 var(--font-body);
+  cursor: pointer;
+}
+
+.moveOption[aria-pressed='true'] {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.dotSmall {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dotSmall[data-color='inbox'] {
+  background: var(--c-inbox);
+}
+.dotSmall[data-color='mist'] {
+  background: var(--c-mist);
+}
+.dotSmall[data-color='gold'] {
+  background: var(--c-gold);
+}
+.dotSmall[data-color='sage'] {
+  background: var(--c-sage);
+}
+.dotSmall[data-color='salmon'] {
+  background: var(--c-salmon);
+}
+
+/* Project 아이콘 버튼은 그 Area 색으로 살짝 물든다 */
+.iconBtn[data-tint='mist'] {
+  color: var(--c-mist);
+}
+.iconBtn[data-tint='gold'] {
+  color: var(--c-gold);
+}
+.iconBtn[data-tint='sage'] {
+  color: var(--c-sage);
+}
+.iconBtn[data-tint='salmon'] {
+  color: var(--c-salmon);
+}
 
 .projectList {
   display: flex;
@@ -175,7 +285,7 @@
 
 .projectRow {
   display: grid;
-  grid-template-columns: 22px 36px 1fr 36px;
+  grid-template-columns: 36px 1fr auto;
   align-items: center;
   gap: 8px;
   padding: 4px 0;

@@ -25,7 +25,7 @@ REST + JSON, 경로는 `/api/*` (D-035). 용어는 [GLOSSARY.md](../GLOSSARY.md)
 | 400 | `INBOX_LOCKED` | Inbox 이름·색·아이콘 변경, 삭제 | V4 |
 | 404 | `NOT_FOUND` | 없는 Card·Project, 또는 없는 `afterId` | "찾을 수 없어요. 새로고침해 주세요." |
 | 409 | `NAME_TAKEN` | Project 이름 중복 (D-053) | V2 |
-| 409 | `PROJECT_LIMIT` | Project 20개 초과 (D-034) | V3 |
+| 409 | `PROJECT_LIMIT` | Project 20개 초과 (D-034), Area 8개 초과 (D-084) | V3, "Area는 8개까지 만들 수 있어요." |
 | 500 | `INTERNAL` | 그 밖의 서버 오류 | T1 "저장하지 못했어요. 잠시 후 다시 시도해 주세요." |
 
 `message`는 화면에 그대로 보여 줄 수 있는 문장이다. frontend는 `code`로 분기하고 `message`를 표시한다.
@@ -41,8 +41,11 @@ REST + JSON, 경로는 `/api/*` (D-035). 용어는 [GLOSSARY.md](../GLOSSARY.md)
 | POST | `/api/cards/:id/move` | Status·순서 바꾸기 | F4, F5 |
 | DELETE | `/api/cards/:id` | Card 영구 삭제 | F7 |
 | POST | `/api/projects` | Project 만들기 | F8 |
-| PATCH | `/api/projects/:id` | 이름·색·아이콘 수정 | F8 |
+| PATCH | `/api/projects/:id` | 이름·아이콘·Area 수정 | F8 |
 | DELETE | `/api/projects/:id` | Project 삭제, Card는 Inbox로 | F8 |
+| POST | `/api/areas` | Area 만들기 | D-084 |
+| PATCH | `/api/areas/:id` | 이름·색 수정 | D-084 |
+| DELETE | `/api/areas/:id` | Area 삭제, 그 Project는 Area 없음 | D-084 |
 
 ### GET `/api/board`
 
@@ -51,8 +54,11 @@ Board 하나를 한 번에 받는다 (D-014). 개인용이라 데이터가 작�
 ```json
 // 200
 {
+  "areas": [
+    { "id": "…", "name": "Career", "color": "mist", "createdAt": "…", "updatedAt": "…" }
+  ],
   "projects": [
-    { "id": "…", "name": "Inbox", "color": "inbox", "icon": "inbox", "isInbox": true,
+    { "id": "…", "name": "Inbox", "icon": "inbox", "isInbox": true, "areaId": null,
       "createdAt": "…", "updatedAt": "…" }
   ],
   "cards": [
@@ -127,21 +133,21 @@ Board 하나를 한 번에 받는다 (D-014). 개인용이라 데이터가 작�
 
 ```json
 // 요청
-{ "name": "학교", "color": "mist(선택)", "icon": "graduation-cap(선택)" }
+{ "name": "학습", "icon": "graduation-cap(선택)", "areaId": "…(선택)" }
 // 201: 만들어진 Project
 ```
 
 | 필드 | 규칙 |
 |---|---|
 | `name` | 필수, 공백 제거 후 1~30자 (D-065). 공백 제거·영문 소문자 기준으로 중복이면 409 `NAME_TAKEN` (D-053) |
-| `color` | 선택, `mist`/`gold`/`sage`/`salmon`. 없으면 4색 순환 (D-042) |
+| `areaId` | 선택. 없거나 `null`이면 Area 없음. 없는 Area면 404 (D-083) |
 | `icon` | 선택, 허용 목록 25개 중 하나(D-078). 없으면 `folder` (D-062) |
 
 - 이미 20개(Inbox 포함)면 409 `PROJECT_LIMIT`.
 
 ### PATCH `/api/projects/:id`
 
-- 바꿀 필드만: `name`, `color`, `icon` (규칙은 위와 같음). Inbox면 400 `INBOX_LOCKED`.
+- 바꿀 필드만: `name`, `icon`, `areaId`(`null`이면 Area 없음). Inbox면 400 `INBOX_LOCKED`.
 - 자기 이름을 대소문자만 바꾸는 것(`work` → `Work`)은 허용한다.
 
 ### DELETE `/api/projects/:id`
@@ -153,3 +159,19 @@ Board 하나를 한 번에 받는다 (D-014). 개인용이라 데이터가 작�
 
 - 하나의 트랜잭션에서 그 Project의 Card를 모두 Inbox로 옮긴 뒤 Project를 삭제한다. Card의 순서는 바뀌지 않는다 (DATA-MODEL 4).
 - Inbox면 400 `INBOX_LOCKED`.
+
+### POST `/api/areas` · PATCH `/api/areas/:id` · DELETE `/api/areas/:id` (D-084)
+
+```json
+// POST 요청
+{ "name": "Family", "color": "sage(선택)" }
+// 201: 만들어진 Area
+```
+
+| 필드 | 규칙 |
+|---|---|
+| `name` | 공백 제거 후 1~20자. 공백·영문 대소문자를 무시하고 중복이면 409 `NAME_TAKEN` |
+| `color` | `mist`/`gold`/`sage`/`salmon`. 만들 때 없으면 4색을 순서대로 |
+
+- 이미 8개면 409 `PROJECT_LIMIT` ("Area는 8개까지 만들 수 있어요.").
+- PATCH는 바꿀 필드만(`name`, `color`). DELETE는 200 `{ "unassignedProjects": n }`이고, 그 Area의 Project는 Area 없음(크림)이 된다. Card는 그대로다.

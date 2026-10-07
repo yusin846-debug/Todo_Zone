@@ -6,11 +6,25 @@ DB는 SQLite이고 Drizzle + libSQL로 접근한다 ([ADR-0005](adr/0005-drizzle
 ## 1. 관계
 
 ```
-projects 1 ──────< cards
-  (Inbox 1개 포함, 최대 20개)     (모든 Card는 정확히 1개의 Project에 속함)
+areas 1 ──────< projects 1 ──────< cards
+ (최대 8개,        (Area 0~1개,        (모든 Card는 정확히
+  색을 가짐)        Inbox는 Area 없음)   1개의 Project에 속함)
 ```
 
 ## 2. 테이블
+
+### 2.0 `areas` (D-083, D-084)
+
+| 열 | 타입 | 제약 | 설명 |
+|---|---|---|---|
+| `id` | TEXT | PK | UUID |
+| `name` | TEXT | NOT NULL, 공백 제거 후 1~20자 | 화면에 보이는 이름 (영어 권장: Business, Career …) |
+| `name_key` | TEXT | NOT NULL, **UNIQUE** | 중복 검사용 (D-053과 같은 규칙) |
+| `color` | TEXT | NOT NULL, CHECK ∈ {`mist`, `gold`, `sage`, `salmon`} | 그 Area 카드의 색 (D-086) |
+| `created_at` | TEXT | NOT NULL | 태그 줄·Review 정렬 기준 |
+| `updated_at` | TEXT | NOT NULL | |
+
+- 첫 마이그레이션에서 기본 4개를 만든다: Business(gold), Career(mist), Ventures(salmon), Life(sage).
 
 ### 2.1 `projects`
 
@@ -19,7 +33,7 @@ projects 1 ──────< cards
 | `id` | TEXT | PK | UUID (D-050) |
 | `name` | TEXT | NOT NULL, 앞뒤 공백 제거 후 1~30자 (D-065) | 화면에 보이는 이름 |
 | `name_key` | TEXT | NOT NULL, **UNIQUE** | 중복 검사용. `trim(name)`을 영문 소문자로 바꾼 값 (D-053) |
-| `color` | TEXT | NOT NULL, CHECK ∈ {`inbox`, `mist`, `gold`, `sage`, `salmon`} | 색 이름. 색 코드는 저장하지 않는다 (D-054, D-057) |
+| `area_id` | TEXT | NULL 허용, FK → `areas.id` **ON DELETE SET NULL** | 소속 Area. Inbox는 항상 NULL (D-083) |
 | `icon` | TEXT | NOT NULL, DEFAULT `'folder'` | Lucide 아이콘 이름. 허용 목록(25개 + `inbox`, D-078)은 shared에서 검사한다 (D-062) |
 | `is_inbox` | INTEGER | NOT NULL, CHECK ∈ {0, 1}, DEFAULT 0 | Inbox 표시 (D-052) |
 | `created_at` | TEXT | NOT NULL | UTC ISO 8601 (`2026-10-07T05:12:00.000Z`). Project 줄 정렬 기준 |
@@ -27,11 +41,12 @@ projects 1 ──────< cards
 
 **테이블 제약**
 - `UNIQUE INDEX ... ON projects(is_inbox) WHERE is_inbox = 1`: Inbox는 **최대 1개**.
-- `CHECK ((is_inbox = 1 AND color = 'inbox') OR (is_inbox = 0 AND color <> 'inbox'))`: 흰색은 Inbox 전용 (D-042).
+- `CHECK (is_inbox = 0 OR area_id IS NULL)`: Inbox는 Area에 속하지 않는다.
+- 카드 색은 저장하지 않는다. Project의 Area 색이고, Area가 없으면 크림이다 (D-086).
 - `CHECK ((is_inbox = 1 AND icon = 'inbox') OR (is_inbox = 0 AND icon <> 'inbox'))`: `inbox` 아이콘은 Inbox 전용.
-- Inbox는 첫 마이그레이션에서 1개 만든다(`name = 'Inbox'`, `color = 'inbox'`, `icon = 'inbox'`). 따라서 Inbox는 **정확히 1개**다.
+- Inbox는 첫 마이그레이션에서 1개 만든다(`name = 'Inbox'`, `icon = 'inbox'`). 따라서 Inbox는 **정확히 1개**다.
 
-> 아이콘 허용 목록에 DB CHECK를 걸지 않는 이유: 아이콘을 추가할 때마다 마이그레이션이 필요해진다. 색은 디자인 토큰과 1:1이라 CHECK를 건다.
+> 아이콘 허용 목록에 DB CHECK를 걸지 않는 이유: 아이콘을 추가할 때마다 마이그레이션이 필요해진다. Area 색은 디자인 토큰과 1:1이라 CHECK를 건다.
 
 ### 2.2 `cards`
 
@@ -88,7 +103,9 @@ projects 1 ──────< cards
 | Project 최대 20개 | D-034 | | ✓ (V3 문구) | |
 | Inbox 정확히 1개 | D-052 | 부분 UNIQUE + 시드 | ✓ | |
 | Inbox 이름·색 변경, 삭제 금지 | D-016 | CHECK(색) | ✓ (V4 문구) | |
-| 크림색·`inbox` 아이콘은 Inbox 전용 | D-042, D-062 | CHECK | ✓ | ✓ |
+| `inbox` 아이콘은 Inbox 전용, Inbox는 Area 없음 | D-062, D-083 | CHECK | ✓ | ✓ |
+| Area 이름 1~20자·중복 금지, 최대 8개 | D-084 | UNIQUE(name_key) | ✓ | ✓ |
+| Area를 지우면 Project는 Area 없음 | D-084 | FK SET NULL | ✓ | |
 | Project 이름 1~30자 | D-065 | | ✓ (V5 문구) | ✓ |
 | Project 아이콘은 허용 목록 중 하나 | D-062 | | ✓ | ✓ |
 | Project 삭제 시 Card → Inbox | D-016 | FK RESTRICT(안전장치) | ✓ (트랜잭션) | |
@@ -100,7 +117,8 @@ projects 1 ──────< cards
 
 | 표 | 내용 |
 |---|---|
-| projects | Inbox 1개 (`is_inbox = 1`, `color = 'inbox'`, `icon = 'inbox'`) |
+| areas | Business(gold), Career(mist), Ventures(salmon), Life(sage) |
+| projects | Inbox 1개 (`is_inbox = 1`, `icon = 'inbox'`, `area_id = NULL`) |
 | cards | 없음 |
 
 ## 7. 미정

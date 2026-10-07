@@ -1,4 +1,4 @@
-import { PROJECT_COLORS, type ProjectColor, type Status } from './constants.ts';
+import { AREA_COLORS, type AreaColor, type Status } from './constants.ts';
 import type { Card } from './types.ts';
 
 // Card 순서 규칙 (docs/DATA-MODEL.md 4장). frontend의 낙관적 변경과 backend의 저장이
@@ -78,7 +78,7 @@ export function removeCard(cards: Card[], cardId: string): Card[] {
   return renumber(rest, { [removing.status]: idsOf(rest, removing.status) });
 }
 
-/** n번째 일반 Project의 색 (Inbox 제외, 4색 순환, D-042) */
-export function nextProjectColor(nonInboxCount: number): ProjectColor {
-  return PROJECT_COLORS[nonInboxCount % PROJECT_COLORS.length]!;
+/** n번째 Area의 기본 색 (4색 순환, D-084) */
+export function nextAreaColor(areaCount: number): AreaColor {
+  return AREA_COLORS[areaCount % AREA_COLORS.length]!;
 }

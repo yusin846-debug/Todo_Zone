@@ -4,10 +4,13 @@ import {
   addCard,
   moveCard,
   removeCard,
+  type Area,
   type Card,
+  type CreateAreaInput,
   type CreateProjectInput,
   type Project,
   type Status,
+  type UpdateAreaInput,
   type UpdateCardInput,
   type UpdateProjectInput,
 } from '@todo-zone/shared';
@@ -16,7 +19,7 @@ import { request } from './client.ts';
 // Board 데이터의 서버 연결 (step11-4, D-038).
 // 화면은 캐시를 먼저 바꾸고(낙관적 업데이트), 서버가 실패하면 되돌린다.
 
-export type BoardData = { projects: Project[]; cards: Card[] };
+export type BoardData = { areas: Area[]; projects: Project[]; cards: Card[] };
 
 const BOARD_KEY = ['board'] as const;
 // 같은 scope의 mutation은 하나씩 순서대로 보내진다: 요청 순서가 뒤바뀌지 않게 한다.
@@ -184,6 +187,22 @@ export function useProjectActions() {
       const updated = await request<Project>('PATCH', `/api/projects/${id}`, input);
       await refresh();
       return updated;
+    },
+    /** Area 관리 (D-084). 지우면 그 Project는 Area 없음이 된다 */
+    createArea: async (input: CreateAreaInput) => {
+      const created = await request<Area>('POST', '/api/areas', input);
+      await refresh();
+      return created;
+    },
+    updateArea: async (id: string, input: UpdateAreaInput) => {
+      const updated = await request<Area>('PATCH', `/api/areas/${id}`, input);
+      await refresh();
+      return updated;
+    },
+    deleteArea: async (id: string) => {
+      const result = await request<{ unassignedProjects: number }>('DELETE', `/api/areas/${id}`);
+      await refresh();
+      return result;
     },
     /** Card는 Inbox로 옮겨진다 (D-016). */
     deleteProject: async (id: string) => {

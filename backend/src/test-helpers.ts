@@ -10,9 +10,17 @@ export async function setup() {
 
   const board = async () =>
     (await api.get('/api/board').expect(200)).body as {
-      projects: { id: string; name: string; isInbox: boolean; color: string; icon: string }[];
+      areas: { id: string; name: string; color: string }[];
+      projects: {
+        id: string;
+        name: string;
+        isInbox: boolean;
+        icon: string;
+        areaId: string | null;
+      }[];
       cards: { id: string; title: string; status: string; position: number; projectId: string }[];
     };
+  const areaId = async (name: string) => (await board()).areas.find((a) => a.name === name)!.id;
   const inboxId = async () => (await board()).projects.find((p) => p.isInbox)!.id;
   const titles = async (status: string) =>
     (await board()).cards.filter((c) => c.status === status).map((c) => c.title);
@@ -28,5 +36,5 @@ export async function setup() {
         .expect(201)
     ).body as { id: string };
 
-  return { db, api, board, inboxId, titles, addCard, addProject };
+  return { db, api, board, areaId, inboxId, titles, addCard, addProject };
 }

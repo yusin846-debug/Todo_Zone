@@ -2,7 +2,7 @@ import type { Card } from '@todo-zone/shared';
 
 // Board의 화면용 순수 로직. 순서 규칙(columnCards, addCard, moveCard 등)은 backend와
 // 함께 쓰도록 shared/src/ordering.ts에 있다.
-export { addCard, columnCards, moveCard, nextProjectColor, removeCard } from '@todo-zone/shared';
+export { addCard, columnCards, moveCard, removeCard } from '@todo-zone/shared';
 
 export type CardTier = 'focus' | 'l' | 'm' | 's' | 'done';
 

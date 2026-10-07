@@ -1,14 +1,17 @@
 import { Router } from 'express';
 import {
+  createAreaInput,
   createCardInput,
   createProjectInput,
   moveCardInput,
   updateCardInput,
+  updateAreaInput,
   updateProjectInput,
   type HealthResponse,
 } from '@todo-zone/shared';
 import type { Db } from './db/client.ts';
 import { notFound } from './errors.ts';
+import { createArea, deleteArea, listAreas, updateArea } from './services/areas.ts';
 import { createCard, deleteCard, listCards, moveCardTo, updateCard } from './services/cards.ts';
 import { createProject, deleteProject, listProjects, updateProject } from './services/projects.ts';
 
@@ -24,8 +27,12 @@ export function apiRoutes(db: Db) {
   });
 
   r.get('/board', async (_req, res) => {
-    const [projects, cards] = await Promise.all([listProjects(db), listCards(db)]);
-    res.json({ projects, cards });
+    const [areas, projects, cards] = await Promise.all([
+      listAreas(db),
+      listProjects(db),
+      listCards(db),
+    ]);
+    res.json({ areas, projects, cards });
   });
 
   r.post('/cards', async (req, res) => {
@@ -55,6 +62,18 @@ export function apiRoutes(db: Db) {
 
   r.delete('/projects/:id', async (req, res) => {
     res.json(await deleteProject(db, req.params.id));
+  });
+
+  r.post('/areas', async (req, res) => {
+    res.status(201).json(await createArea(db, createAreaInput.parse(req.body)));
+  });
+
+  r.patch('/areas/:id', async (req, res) => {
+    res.json(await updateArea(db, req.params.id, updateAreaInput.parse(req.body)));
+  });
+
+  r.delete('/areas/:id', async (req, res) => {
+    res.json(await deleteArea(db, req.params.id));
   });
 
   r.use(() => {

@@ -8,12 +8,16 @@
 사용자가 해야 할 일 하나. 앱에서 다루는 가장 작은 작업 단위다.
 _Avoid_: 할 일, 태스크, 투두, Task, Todo, Item
 
+**Area (영역)**:
+Project를 묶는 상위 분류. 끝이 없는 책임 영역이다(예: Business, Career, Ventures, Life). Area마다 색을 가지고, 그 Area에 속한 Project의 카드는 그 색으로 보인다.
+_Avoid_: 카테고리, 그룹, 폴더, 분야
+
 **Project (프로젝트)**:
-카드를 묶는 분류. 모든 카드는 정확히 하나의 Project에 속하고, Project마다 고유한 카드 색을 가진다.
+카드를 묶는 분류. 모든 카드는 정확히 하나의 Project에 속한다. Project는 Area 0개 또는 1개에 속하고, 아이콘으로 구분된다.
 _Avoid_: 카테고리, 폴더, 태그, Label
 
 **Inbox**:
-Project를 지정하지 않은 카드가 들어가는 기본 Project. 항상 존재하며 삭제하거나 이름을 바꿀 수 없다.
+Project를 지정하지 않은 카드가 들어가는 기본 Project. 항상 존재하며 삭제하거나 이름을 바꿀 수 없다. Area에 속하지 않는다.
 _Avoid_: 미분류, 기본 폴더
 
 **Status (상태)**:

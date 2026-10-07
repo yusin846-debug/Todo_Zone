@@ -9,31 +9,66 @@ async function freshDb() {
   const db = await openDb(':memory:');
   const run = (sql: string, args: (string | number)[] = []) => db.$client.execute({ sql, args });
   const inbox = (await run('SELECT id FROM projects WHERE is_inbox = 1')).rows[0]!.id as string;
-  const project = (id: string, name: string, color = 'mist', isInbox = 0, icon = 'folder') =>
+  const project = (
+    id: string,
+    name: string,
+    isInbox = 0,
+    icon = 'folder',
+    areaId: string | null = null,
+  ) =>
     run(
-      'INSERT INTO projects (id, name, name_key, color, icon, is_inbox, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [id, name, name.toLowerCase(), color, icon, isInbox, NOW, NOW],
+      'INSERT INTO projects (id, name, name_key, area_id, icon, is_inbox, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, name, name.toLowerCase(), areaId as string, icon, isInbox, NOW, NOW],
+    );
+  const area = (id: string, name: string, color = 'mist') =>
+    run(
+      'INSERT INTO areas (id, name, name_key, color, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [id, name, name.toLowerCase(), color, NOW, NOW],
     );
   const card = (id: string, projectId: string, title = 't', status = 'todo', position = 0) =>
     run(
       'INSERT INTO cards (id, title, memo, status, position, project_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       [id, title, '', status, position, projectId, NOW, NOW],
     );
-  return { run, inbox, project, card };
+  return { run, inbox, project, card, area };
 }
 
 describe('DB 제약 (DATA-MODEL 5)', () => {
   it('Inbox는 정확히 1개다', async () => {
     const { run, project } = await freshDb();
     expect((await run('SELECT count(*) AS n FROM projects WHERE is_inbox = 1')).rows[0]!.n).toBe(1);
-    await expect(project('i2', 'Inbox2', 'inbox', 1, 'inbox')).rejects.toThrow();
+    await expect(project('i2', 'Inbox2', 1, 'inbox')).rejects.toThrow();
   });
 
-  it('inbox 색·아이콘은 Inbox 전용이고, 모르는 색은 거부한다', async () => {
-    const { project } = await freshDb();
-    await expect(project('p1', 'A', 'inbox')).rejects.toThrow();
-    await expect(project('p2', 'B', 'mist', 0, 'inbox')).rejects.toThrow();
-    await expect(project('p3', 'C', 'purple')).rejects.toThrow();
+  it('inbox 아이콘은 Inbox 전용이고, Inbox는 Area에 속할 수 없다 (D-083)', async () => {
+    const { run, project, area, inbox } = await freshDb();
+    await expect(project('p2', 'B', 0, 'inbox')).rejects.toThrow();
+    await area('a1', 'Work');
+    await expect(
+      run('UPDATE projects SET area_id = ? WHERE id = ?', ['a1', inbox]),
+    ).rejects.toThrow();
+  });
+
+  it('Area 색은 4색만, 기본 Area 4개가 있다 (D-084, D-086)', async () => {
+    const { run, area } = await freshDb();
+    await expect(area('a1', 'X', 'inbox')).rejects.toThrow();
+    await expect(area('a2', 'Y', 'purple')).rejects.toThrow();
+    const rows = (await run('SELECT name, color FROM areas ORDER BY created_at')).rows;
+    expect(rows.map((r) => `${r.name}:${r.color}`)).toEqual([
+      'Business:gold',
+      'Career:mist',
+      'Ventures:salmon',
+      'Life:sage',
+    ]);
+  });
+
+  it('Area를 지우면 Project는 Area 없음이 된다 (FK SET NULL)', async () => {
+    const { run, project, area } = await freshDb();
+    await area('a1', 'Work');
+    await project('p1', '회사', 0, 'folder', 'a1');
+    await run('DELETE FROM areas WHERE id = ?', ['a1']);
+    const row = (await run('SELECT area_id FROM projects WHERE id = ?', ['p1'])).rows[0]!;
+    expect(row.area_id).toBeNull();
   });
 
   it('Card가 남은 Project는 DB에서 바로 지울 수 없다 (FK RESTRICT)', async () => {
