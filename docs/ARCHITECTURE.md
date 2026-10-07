@@ -34,7 +34,7 @@
 ```
 todo-project/
 ├── package.json        ← npm workspaces 루트. `npm run dev`로 전체 실행
-├── shared/             ← zod 스키마, 타입, 공통 상수(100자, 20개 등)
+├── shared/             ← zod 스키마, 타입, 공통 상수(100자, 20개 등), Card 순서 규칙(ordering.ts)
 ├── frontend/           ← React + Vite + TypeScript
 │   └── src/
 │       ├── api/        ← fetch 래퍼, TanStack Query 훅
@@ -58,7 +58,7 @@ todo-project/
 | **frontend / components** | 화면 그리기, 드래그, 입력. 한글 조합(`isComposing`) 처리 | 도메인 규칙 판단(서버가 최종 판단) |
 | **frontend / api** | 서버 호출, 캐시, **낙관적 업데이트**와 실패 시 되돌리기 (D-038) | 화면 그리기 |
 | **backend / routes** | URL·메서드 매핑, shared 스키마로 입력 검사, HTTP 상태 코드 | 도메인 규칙 |
-| **backend / services** | Inbox 보호, Project 이름 중복 금지, 20개 제한, Project 삭제 시 Card를 Inbox로 이동, Card 순서 재계산 | HTTP, SQL 세부 |
+| **backend / services** | Inbox 보호, Project 이름 중복 금지, 20개 제한, Project 삭제 시 Card를 Inbox로 이동, Card 순서 재계산(shared/ordering.ts). 쓰기는 잠금 + batch ([ADR-0006](adr/0006-write-lock-and-batch.md)) | HTTP, SQL 세부 |
 | **backend / db** | 테이블 정의, 쿼리, 트랜잭션, 마이그레이션 | 규칙 판단 |
 
 **규칙의 최종 판단은 서버(services)가 한다.** 프론트엔드도 같은 shared 스키마로 미리 검사하지만, 그건 빠른 안내를 위한 것이다.

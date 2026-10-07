@@ -72,3 +72,5 @@
 | D-065 | Project 이름은 앞뒤 공백을 제거하고 **1~30자**다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
 | D-066 | 11-1(개발 환경)을 09·10보다 먼저 한다. 09·10은 11-3 전에 끝낸다 | 2026-10-07 | [PLAN](PLAN.md) |
 | D-067 | 혼자 하는 프로젝트이므로 `main`에 직접 커밋하고, 마일스톤마다 푸시한다 | 2026-10-07 | |
+| D-068 | Card 순서 규칙(`columnCards`, `addCard`, `moveCard`, `removeCard`)은 **shared/ordering.ts** 하나를 frontend와 backend가 함께 쓴다 | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
+| D-069 | backend 쓰기는 **프로세스 안 잠금 + batch**로 처리하고 libsql `transaction()`은 쓰지 않는다 | 2026-10-07 | [ADR-0006](adr/0006-write-lock-and-batch.md) |

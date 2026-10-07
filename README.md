@@ -6,7 +6,7 @@
 - 시각 형식: Morrow (다크 캔버스 + 파스텔 카드)
 - 언어: 타이틀은 영어, 내용은 한글
 
-> 현재 상태: **개발 중** (step11-1 개발 환경 완료). 진행 상황은 [PLAN](docs/PLAN.md).
+> 현재 상태: **개발 중** (step11-3 백엔드 API 완료, 화면은 아직 가짜 데이터). 진행 상황은 [PLAN](docs/PLAN.md).
 
 ## 문서
 
@@ -21,6 +21,8 @@
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 구성 요소와 데이터 흐름 |
 | [docs/SCREEN-SPEC.md](docs/SCREEN-SPEC.md) | 화면 명세, 디자인 토큰, 문구표 |
 | [docs/DATA-MODEL.md](docs/DATA-MODEL.md) | 테이블, 제약, 순서 규칙 |
+| [docs/API-SPEC.md](docs/API-SPEC.md) | 엔드포인트, 요청·응답, 오류 코드 |
+| [docs/TEST-PLAN.md](docs/TEST-PLAN.md) | PRD 수용 기준 → 테스트 대응 |
 | [docs/mockups/board.html](docs/mockups/board.html) | Board 화면 시안 (브라우저로 열기) |
 | [docs/design-insights-morrow.md](docs/design-insights-morrow.md) | Morrow 디자인 분석 |
 | [docs/design-insights-readymag.md](docs/design-insights-readymag.md) | Readymag 디자인 분석 |
@@ -39,6 +41,9 @@ npm run dev        # frontend http://localhost:5173, backend http://127.0.0.1:30
 | `npm run dev` | frontend + backend 동시 실행 |
 | `npm test` | 모든 워크스페이스 테스트 |
 | `npm run typecheck` | 모든 워크스페이스 타입 검사 |
+| `npm run db:generate -w backend` | `backend/src/db/schema.ts`를 바꾼 뒤 마이그레이션 SQL 생성 |
+
+데이터는 `backend/data/todo-zone.db` 파일 하나에 저장된다(git 제외). 백업은 이 파일을 복사하면 된다.
 
 backend 설정을 바꾸려면 `backend/.env.example`을 `backend/.env`로 복사해서 고친다.
 

@@ -1,15 +1,13 @@
 import express from 'express';
-import type { HealthResponse } from '@todo-zone/shared';
+import type { Db } from './db/client.ts';
+import { errorHandler } from './errors.ts';
+import { apiRoutes } from './routes.ts';
 
-// 서버 설정과 라우트만 담당한다. 포트에 붙이는 일은 index.ts가 한다 (테스트에서 app만 쓰기 위해).
-export function createApp() {
+// 서버 설정만 담당한다. 포트에 붙이는 일은 index.ts가 한다 (테스트에서 app만 쓰기 위해).
+export function createApp(db: Db) {
   const app = express();
   app.use(express.json());
-
-  app.get('/api/health', (_req, res) => {
-    const body: HealthResponse = { status: 'ok' };
-    res.json(body);
-  });
-
+  app.use('/api', apiRoutes(db));
+  app.use(errorHandler);
   return app;
 }
