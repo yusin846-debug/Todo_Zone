@@ -20,7 +20,7 @@ projects 1 ──────< cards
 | `name` | TEXT | NOT NULL, 앞뒤 공백 제거 후 1~30자 (D-065) | 화면에 보이는 이름 |
 | `name_key` | TEXT | NOT NULL, **UNIQUE** | 중복 검사용. `trim(name)`을 영문 소문자로 바꾼 값 (D-053) |
 | `color` | TEXT | NOT NULL, CHECK ∈ {`inbox`, `mist`, `gold`, `sage`, `salmon`} | 색 이름. 색 코드는 저장하지 않는다 (D-054, D-057) |
-| `icon` | TEXT | NOT NULL, DEFAULT `'folder'` | Lucide 아이콘 이름. 허용 목록(24개 + `inbox`)은 shared에서 검사한다 (D-062) |
+| `icon` | TEXT | NOT NULL, DEFAULT `'folder'` | Lucide 아이콘 이름. 허용 목록(25개 + `inbox`, D-078)은 shared에서 검사한다 (D-062) |
 | `is_inbox` | INTEGER | NOT NULL, CHECK ∈ {0, 1}, DEFAULT 0 | Inbox 표시 (D-052) |
 | `created_at` | TEXT | NOT NULL | UTC ISO 8601 (`2026-10-07T05:12:00.000Z`). Project 줄 정렬 기준 |
 | `updated_at` | TEXT | NOT NULL | UTC ISO 8601 |

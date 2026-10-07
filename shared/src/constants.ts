@@ -13,7 +13,7 @@ export type Status = (typeof STATUSES)[number];
 export const PROJECT_COLORS = ['mist', 'gold', 'sage', 'salmon'] as const; // D-057
 export type ProjectColor = (typeof PROJECT_COLORS)[number] | 'inbox';
 
-// D-062: Lucide 아이콘 이름. 새 Project 기본값은 'folder', 'inbox'는 Inbox 전용.
+// D-062, D-078: 아이콘 이름 (Lucide 24개 + 직접 그린 gimbap). 새 Project 기본값은 'folder', 'inbox'는 Inbox 전용.
 export const PROJECT_ICONS = [
   'folder',
   'book-open',
@@ -39,6 +39,7 @@ export const PROJECT_ICONS = [
   'sprout',
   'star',
   'coffee',
+  'gimbap', // 직접 그린 아이콘 (D-078). Lucide에 없음
 ] as const;
 export type ProjectIcon = (typeof PROJECT_ICONS)[number] | 'inbox';
 

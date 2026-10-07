@@ -24,6 +24,8 @@ describe('POST /api/projects (F8)', () => {
     await api.post('/api/projects').send({ name: 'x', color: 'inbox' }).expect(400);
     await api.post('/api/projects').send({ name: 'y', icon: 'inbox' }).expect(400);
     await api.post('/api/projects').send({ name: 'z', icon: 'rocket' }).expect(400);
+    // 직접 그린 김밥 아이콘도 허용 목록에 있다 (D-078)
+    await api.post('/api/projects').send({ name: 'w', icon: 'gimbap' }).expect(201);
   });
 
   it('이름은 공백 제거 후 1~30자 (D-065)', async () => {

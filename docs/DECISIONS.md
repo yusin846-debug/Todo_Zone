@@ -82,3 +82,4 @@
 | D-075 | Board의 Done 열·열 개수·Project Progress는 **보이는 Card 기준**(Todo + Doing + 이번 분기 Done)이다 | 2026-10-07 | |
 | D-076 | 사용자의 실제(개인) 데이터는 **저장소에 커밋하지 않는다**(public 저장소). 로컬 DB에만 둔다 | 2026-10-07 | |
 | D-077 | 커밋 작성자 이름은 **Yusin Kim**이다 (이전 커밋은 그대로 둔다) | 2026-10-07 | |
+| D-078 | Project 아이콘에 직접 그린 **`gimbap`(김밥 단면)**을 추가한다(총 25개). 고른햇살 Project에 쓴다 | 2026-10-07 | [SCREEN-SPEC 1.4](SCREEN-SPEC.md) |

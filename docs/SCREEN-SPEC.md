@@ -70,9 +70,11 @@
 ### 1.4 아이콘 (D-062)
 
 - 세트: **Lucide** (ISC 라이선스, React는 `lucide-react`), 선 굵기 1.75, 크기 13–22px.
-- **Project 아이콘**: Project마다 1개. 아래 24개 중에서 고른다. 새 Project 기본값은 `folder`. Inbox는 `inbox`로 고정.
+- **Project 아이콘**: Project마다 1개. 아래 25개 중에서 고른다. 새 Project 기본값은 `folder`. Inbox는 `inbox`로 고정.
 
-  `folder` `book-open` `graduation-cap` `briefcase` `laptop` `code` `pen-tool` `palette` `music` `dumbbell` `footprints` `heart` `users` `house` `shopping-bag` `utensils` `wallet` `plane` `car` `gamepad-2` `camera` `sprout` `star` `coffee`
+  `folder` `book-open` `graduation-cap` `briefcase` `laptop` `code` `pen-tool` `palette` `music` `dumbbell` `footprints` `heart` `users` `house` `shopping-bag` `utensils` `wallet` `plane` `car` `gamepad-2` `camera` `sprout` `star` `coffee` `gimbap`
+
+  `gimbap`은 Lucide에 없어서 직접 그렸다 (D-078). 24×24, Lucide와 같은 둥근 선 끝. 김 테두리는 굵은 선(3), 속재료 6개는 채운 도형이다. 단, 16px 이하에서는 속재료의 세부 모양이 뭉개진다.
 - **상태 아이콘** (앱이 자동으로 붙임, D-063):
 
   | 상황 | 아이콘 |
@@ -215,7 +217,7 @@
 - 목록: Inbox 맨 위(자물쇠), 나머지는 만든 순서. 각 행 앞에 Project 색 원 + 아이콘.
 - 새 Project: 이름 입력 후 Enter. 색은 4색(mist → gold → sage → salmon)을 순서대로 자동, 아이콘은 `folder` (D-042, D-062). 20개면 비활성 + V3.
 - 이름: 클릭해서 바로 편집. 앞뒤 공백 제거 후 1~30자 (D-065). Enter 저장 / Esc 취소. 중복이면 V2.
-- 색: 4색 팔레트(크림은 고를 수 없음). 아이콘: 24개 격자(6×4)에서 선택.
+- 색: 4색 팔레트(크림은 고를 수 없음). 아이콘: 25개 격자(5×5)에서 선택.
 - 삭제: 🗑 → D3.
 
 ### S4. 상태 화면
