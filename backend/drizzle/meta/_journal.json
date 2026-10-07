@@ -15,6 +15,13 @@
       "when": 1791354674538,
       "tag": "0001_seed_inbox",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791356278423,
+      "tag": "0002_card_completed_at",
+      "breakpoints": true
     }
   ]
 }

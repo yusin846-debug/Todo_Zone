@@ -11,6 +11,7 @@ import {
 } from './board.ts';
 
 const TODAY = '2026-10-07';
+const NOW = '2026-10-07T05:00:00.000Z';
 
 function card(
   id: string,
@@ -26,6 +27,7 @@ function card(
     status,
     position,
     projectId: 'p1',
+    completedAt: null,
     createdAt: '2026-10-01T00:00:00.000Z',
     updatedAt: '2026-10-01T00:00:00.000Z',
     ...extra,
@@ -67,43 +69,58 @@ describe('addCard (D-018, D-013)', () => {
       '2026-10-07T00:00:00.000Z',
     );
     expect(layout(next).todo).toEqual(['n', 'a', 'b', 'c']);
+    expect(next.find((c) => c.id === 'n')?.completedAt).toBeNull();
     expect(positionsAreDense(next)).toBe(true);
   });
 });
 
 describe('moveCard (DATA-MODEL 4)', () => {
   it('같은 열 안에서 뒤로 옮긴다', () => {
-    const next = moveCard(base, 'a', 'todo', 'c');
+    const next = moveCard(base, 'a', 'todo', 'c', NOW);
     expect(layout(next).todo).toEqual(['b', 'c', 'a']);
     expect(positionsAreDense(next)).toBe(true);
   });
 
   it('afterId가 null이면 맨 위로 간다', () => {
-    expect(layout(moveCard(base, 'c', 'todo', null)).todo).toEqual(['c', 'a', 'b']);
+    expect(layout(moveCard(base, 'c', 'todo', null, NOW)).todo).toEqual(['c', 'a', 'b']);
   });
 
   it('다른 열로 옮기면 양쪽 순번이 모두 빈틈없다', () => {
-    const next = moveCard(base, 'b', 'doing', 'd');
+    const next = moveCard(base, 'b', 'doing', 'd', NOW);
     expect(layout(next)).toEqual({ todo: ['a', 'c'], doing: ['d', 'b'], done: [] });
     expect(positionsAreDense(next)).toBe(true);
     expect(next.find((c) => c.id === 'b')?.status).toBe('doing');
   });
 
   it('빈 열로도 옮길 수 있다', () => {
-    const next = moveCard(base, 'a', 'done', null);
+    const next = moveCard(base, 'a', 'done', null, NOW);
     expect(layout(next).done).toEqual(['a']);
     expect(positionsAreDense(next)).toBe(true);
   });
 
   it('필터 중에는 보이는 카드 바로 뒤에 끼운다 (전체 순서 기준)', () => {
     // 화면에는 p1만 보임: todo = [a, c]. d를 a 뒤로 → 전체로는 a 바로 뒤(= b 앞)
-    const next = moveCard(base, 'd', 'todo', 'a');
+    const next = moveCard(base, 'd', 'todo', 'a', NOW);
     expect(layout(next).todo).toEqual(['a', 'd', 'b', 'c']);
+  });
+
+  it('Done에 들어가면 completedAt을 기록하고, 나가면 지운다 (D-072)', () => {
+    const done = moveCard(base, 'a', 'done', null, NOW);
+    expect(done.find((c) => c.id === 'a')?.completedAt).toBe(NOW);
+
+    const reopened = moveCard(done, 'a', 'todo', null, '2026-10-08T00:00:00.000Z');
+    expect(reopened.find((c) => c.id === 'a')?.completedAt).toBeNull();
+  });
+
+  it('Done 안에서 순서만 바꾸면 completedAt은 그대로다', () => {
+    const twoDone = moveCard(moveCard(base, 'a', 'done', null, NOW), 'b', 'done', 'a', NOW);
+    const reordered = moveCard(twoDone, 'b', 'done', null, '2026-12-01T00:00:00.000Z');
+    expect(reordered.find((c) => c.id === 'b')?.completedAt).toBe(NOW);
   });
 
   it('원본 배열을 바꾸지 않는다', () => {
     const before = JSON.stringify(base);
-    moveCard(base, 'a', 'doing', null);
+    moveCard(base, 'a', 'doing', null, NOW);
     expect(JSON.stringify(base)).toBe(before);
   });
 });

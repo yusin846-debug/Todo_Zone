@@ -57,12 +57,14 @@ Board 하나를 한 번에 받는다 (D-014). 개인용이라 데이터가 작�
   ],
   "cards": [
     { "id": "…", "title": "API-SPEC 쓰기", "memo": "", "dueDate": "2026-10-08",
-      "status": "todo", "position": 0, "projectId": "…", "createdAt": "…", "updatedAt": "…" }
+      "status": "todo", "position": 0, "projectId": "…", "completedAt": null,
+      "createdAt": "…", "updatedAt": "…" }
   ]
 }
 ```
 
 - `projects`는 Inbox가 먼저, 나머지는 `createdAt` 순. `cards`는 `status`, `position` 순.
+- 아카이브된 Done Card도 함께 온다. 이번 분기인지는 frontend가 사용자 컴퓨터 날짜로 판단한다 (D-071, D-072).
 
 ### POST `/api/cards`
 
@@ -80,7 +82,7 @@ Board 하나를 한 번에 받는다 (D-014). 개인용이라 데이터가 작�
 | `projectId` | 선택. 없으면 Inbox (D-018). 없는 Project면 404 |
 
 - 새 Card는 그 status의 **맨 위**(`position = 0`)에 들어가고 나머지는 1씩 밀린다 (D-013).
-- `memo`는 `""`, `dueDate`는 `null`로 시작한다.
+- `memo`는 `""`, `dueDate`는 `null`로 시작한다. `status`가 `done`이면 `completedAt`이 지금 시각으로 기록된다.
 
 ### PATCH `/api/cards/:id`
 
@@ -113,6 +115,8 @@ Board 하나를 한 번에 받는다 (D-014). 개인용이라 데이터가 작�
 - 필터 중이어도 `afterId`는 화면에 보이는 Card의 id를 그대로 보내면 된다. 서버가 status 전체 순서에서 그 바로 뒤에 끼운다.
 - `afterId`가 그 status에 없거나 옮기는 Card 자신이면 404 / 400.
 - 상세 패널의 Status 변경(F4 모바일)은 `{ "status": "done", "afterId": null }`.
+- Done에 들어가면 `completedAt`을 기록하고, Done에서 나가면 `null`로 지운다. Done 안에서 순서만 바꾸면 그대로 둔다 (D-072).
+- 아카이브 Card의 "다시 열기"(D-073)는 `{ "status": "todo", "afterId": null }`.
 - 응답에는 원래 status와 새 status의 Card가 모두 들어간다. frontend는 이것으로 낙관적 변경을 확정한다 (D-038).
 
 ### DELETE `/api/cards/:id`

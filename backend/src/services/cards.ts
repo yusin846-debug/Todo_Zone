@@ -63,6 +63,7 @@ function positionUpdates(db: Db, before: Card[], after: Card[], now: string) {
         .set({
           position: c.position,
           status: c.status,
+          completedAt: c.completedAt,
           ...(old.get(c.id)!.status !== c.status ? { updatedAt: now } : {}),
         })
         .where(eq(cards.id, c.id)),
@@ -117,7 +118,7 @@ export function moveCardTo(db: Db, id: string, input: MoveCardInput): Promise<Ca
       if (!after || after.status !== input.status) throw notFound();
     }
 
-    const after = moveCard(before, id, input.status, input.afterId);
+    const after = moveCard(before, id, input.status, input.afterId, new Date().toISOString());
     await runBatch(db, positionUpdates(db, before, after, new Date().toISOString()));
     return cardsIn(db, statuses);
   });

@@ -143,6 +143,7 @@
 - 열 머리: eyebrow `01 / TO DO`·`02 / IN PROGRESS`·`03 / FINISHED`, 그 아래 `column` 제목 + 개수. 오른쪽에 `+ New card` 버튼(`--surface` pill). Done 열은 `+ New card` 옆에 접기 버튼(▴/▾).
 - 머리 아래 1px `--line`. 열 폭 비율 1 : 1.35 : 0.85. Card 간격 12px.
 - Done 열 접힘: 머리만 남고 Card가 숨는다. 상태는 localStorage에 기억 (D-045).
+- **Done 열에는 이번 분기에 끝낸 Card만** 보인다. 열 개수와 Project Progress도 Board에 보이는 Card 기준이다 (D-072, D-075). 지난 분기 Card는 Quarterly Review(11-7)에서 본다.
 
 **Card 크기 단계 (D-060)** — 내용으로 자동 결정된다. 사용자가 고르지 않는다.
 

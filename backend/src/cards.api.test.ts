@@ -185,6 +185,46 @@ describe('POST /api/cards/:id/move (F4, F5, DATA-MODEL 4)', () => {
   });
 });
 
+describe('완료 시각 completedAt (D-072)', () => {
+  it('Done으로 옮기면 기록되고, 다시 Todo로 열면 지워진다', async () => {
+    const { api, addCard } = await setup();
+    const { id } = await addCard('끝낼 일');
+
+    const done = await api
+      .post(`/api/cards/${id}/move`)
+      .send({ status: 'done', afterId: null })
+      .expect(200);
+    const doneCard = done.body.cards.find((c: { id: string }) => c.id === id);
+    expect(Date.parse(doneCard.completedAt)).not.toBeNaN();
+
+    const reopened = await api
+      .post(`/api/cards/${id}/move`)
+      .send({ status: 'todo', afterId: null })
+      .expect(200);
+    expect(reopened.body.cards.find((c: { id: string }) => c.id === id).completedAt).toBeNull();
+  });
+
+  it('Done 안에서 순서만 바꾸면 그대로, Done으로 바로 만들면 기록된다', async () => {
+    const { api, addCard } = await setup();
+    const a = await addCard('A', 'done');
+    const b = await addCard('B', 'done');
+    const before = (a as unknown as { completedAt: string }).completedAt;
+    expect(before).not.toBeNull();
+
+    const res = await api
+      .post(`/api/cards/${a.id}/move`)
+      .send({ status: 'done', afterId: b.id })
+      .expect(200);
+    expect(res.body.cards.find((c: { id: string }) => c.id === a.id).completedAt).toBe(before);
+  });
+
+  it('새 Todo Card는 completedAt이 null이다', async () => {
+    const { addCard } = await setup();
+    const card = (await addCard('x')) as unknown as { completedAt: string | null };
+    expect(card.completedAt).toBeNull();
+  });
+});
+
 describe('동시 요청 (services/lock.ts)', () => {
   it('이동 요청 20개를 한꺼번에 보내도 Card 수와 빈틈없는 순번이 유지된다', async () => {
     const { api, addCard, board } = await setup();

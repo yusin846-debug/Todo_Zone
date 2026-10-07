@@ -33,6 +33,7 @@ export function addCard(
     memo: '',
     dueDate: null,
     position: 0,
+    completedAt: input.status === 'done' ? now : null, // D-072
     createdAt: now,
     updatedAt: now,
   };
@@ -43,12 +44,14 @@ export function addCard(
 /**
  * 카드를 toStatus 열에서 afterId 카드 바로 뒤로 옮긴다. afterId가 null이면 맨 위.
  * 필터 중이라도 afterId는 보이는 카드의 id이고, 끼우는 위치는 status 전체 순서 기준이다.
+ * Done에 들어가면 completedAt = now, Done에서 나가면 null. Done 안의 이동은 그대로 (D-072).
  */
 export function moveCard(
   cards: Card[],
   cardId: string,
   toStatus: Status,
   afterId: string | null,
+  now: string,
 ): Card[] {
   const moving = cards.find((c) => c.id === cardId);
   if (!moving || afterId === cardId) return cards;
@@ -62,7 +65,8 @@ export function moveCard(
   if (fromStatus !== toStatus)
     order[fromStatus] = idsOf(cards, fromStatus).filter((id) => id !== cardId);
 
-  const moved = cards.map((c) => (c.id === cardId ? { ...c, status: toStatus } : c));
+  const completedAt = toStatus !== 'done' ? null : fromStatus === 'done' ? moving.completedAt : now;
+  const moved = cards.map((c) => (c.id === cardId ? { ...c, status: toStatus, completedAt } : c));
   return renumber(moved, order);
 }
 

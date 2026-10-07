@@ -48,6 +48,18 @@ describe('DB 제약 (DATA-MODEL 5)', () => {
     await expect(card('c1', 'missing')).rejects.toThrow();
   });
 
+  it('Done이면 completed_at이 있어야 하고, Done이 아니면 없어야 한다', async () => {
+    const { run, inbox } = await freshDb();
+    const insert = (id: string, status: string, completedAt: string | null) =>
+      run(
+        'INSERT INTO cards (id, title, memo, status, position, project_id, completed_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [id, 't', '', status, 0, inbox, completedAt as string, NOW, NOW],
+      );
+    await expect(insert('c1', 'done', null)).rejects.toThrow();
+    await expect(insert('c2', 'todo', NOW)).rejects.toThrow();
+    await expect(insert('c3', 'done', NOW)).resolves.toBeDefined();
+  });
+
   it('제목 길이, status, position 규칙 밖의 값은 거부한다', async () => {
     const { card, inbox } = await freshDb();
     await expect(card('c1', inbox, '')).rejects.toThrow();

@@ -42,7 +42,8 @@ projects 1 ──────< cards
 | `memo` | TEXT | NOT NULL, DEFAULT `''`, 0~2,000자 (D-031) | 없으면 빈 문자열 |
 | `due_date` | TEXT | NULL 허용, CHECK 형식 `YYYY-MM-DD` | **시간대 없는 날짜** (D-051) |
 | `status` | TEXT | NOT NULL, CHECK ∈ {`todo`, `doing`, `done`} | 완료 = `done` (ADR-0003) |
-| `position` | INTEGER | NOT NULL, ≥ 0 | 같은 status 안의 순서. 0이 맨 위 (D-049) |
+| `position` | INTEGER | NOT NULL, ≥ 0 | 같은 status 안의 순서. 0이 맨 위 (D-049). 아카이브된 Done Card도 순번을 가진다 |
+| `completed_at` | TEXT | NULL 허용. **status가 `done`일 때만 값이 있다** (CHECK) | UTC ISO 8601. Done에 들어간 시각 (D-072) |
 | `project_id` | TEXT | NOT NULL, FK → `projects.id` **ON DELETE RESTRICT** | 안전장치 (D-055) |
 | `created_at` | TEXT | NOT NULL | UTC ISO 8601 |
 | `updated_at` | TEXT | NOT NULL | UTC ISO 8601 |
@@ -81,7 +82,8 @@ projects 1 ──────< cards
 | Status 3종 | D-010 | CHECK | ✓ | ✓ |
 | Due date는 날짜만 | D-017 | CHECK(형식) | ✓ | ✓ |
 | 모든 Card는 Project 1개 | D-005 | NOT NULL + FK | | |
-| 순서 0부터 빈틈없이 | D-049 | | ✓ (트랜잭션) | |
+| 순서 0부터 빈틈없이 | D-049 | | ✓ (batch) | |
+| Done ⇔ completed_at 있음 | D-072 | CHECK | ✓ (shared/ordering.ts) | |
 | Project 이름 중복 금지 | D-016 | UNIQUE(name_key) | ✓ (V2 문구) | |
 | Project 최대 20개 | D-034 | | ✓ (V3 문구) | |
 | Inbox 정확히 1개 | D-052 | 부분 UNIQUE + 시드 | ✓ | |

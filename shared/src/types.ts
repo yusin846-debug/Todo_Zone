@@ -21,6 +21,7 @@ export type Card = {
   status: Status;
   position: number; // status 안에서 0부터 빈틈없이 (D-049)
   projectId: string;
+  completedAt: string | null; // Done에 들어간 UTC 시각. Done일 때만 값이 있다 (D-072)
   createdAt: string;
   updatedAt: string;
 };

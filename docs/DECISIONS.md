@@ -23,7 +23,7 @@
 | D-016 | Project 규칙: 이름 중복 **금지**, 색 중복 **허용**(파스텔 5색). Project를 삭제하면 그 카드는 **Inbox로 이동**한다. Inbox는 삭제와 이름 변경이 불가능하다 → **색 규칙은 D-042로 개정** | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
 | D-017 | Due date는 **날짜만** 가진다. Overdue 카드는 Due date를 경고색으로 표시하고, Done 카드는 경고하지 않는다. 표기는 "오늘/내일/어제", 그 외 "10월 9일 (목)" | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
 | D-018 | 카드는 **모든 Status 열** 맨 위의 "+ New card"에서 **제목만** 입력해 만든다. 필터가 켜져 있으면 그 Project에, 아니면 **Inbox**에 넣는다. 메모와 Due date는 상세 패널에서 입력한다 | 2026-10-07 | |
-| D-019 | Done 카드는 **전부 표시**하고, Done 열은 **접을 수 있다**. Archive는 MVP 이후 후보로 둔다 | 2026-10-07 | |
+| D-019 | Done 카드는 **전부 표시**하고, Done 열은 **접을 수 있다**. Archive는 MVP 이후 후보로 둔다 → **D-070·D-072로 개정** (분기 아카이브) | 2026-10-07 | |
 | D-020 | Progress = Done 카드 수 ÷ 전체 카드 수. 0장이면 0%. "3 / 8"처럼 숫자를 함께 표시하고, Inbox에도 표시한다 | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
 | D-021 | **데스크톱 우선**, 모바일(375px)에서도 쓸 수 있다. 모바일은 열을 가로로 넘겨 보고, 상세 패널의 Status 변경으로 카드를 옮긴다. 기준 폭은 1024 / 375 | 2026-10-07 | |
 | D-022 | AI 작업 규칙은 [AGENTS.md](../AGENTS.md)를 따른다 | 2026-10-07 | |
@@ -74,3 +74,11 @@
 | D-067 | 혼자 하는 프로젝트이므로 `main`에 직접 커밋하고, 마일스톤마다 푸시한다 | 2026-10-07 | |
 | D-068 | Card 순서 규칙(`columnCards`, `addCard`, `moveCard`, `removeCard`)은 **shared/ordering.ts** 하나를 frontend와 backend가 함께 쓴다 | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
 | D-069 | backend 쓰기는 **프로세스 안 잠금 + batch**로 처리하고 libsql `transaction()`은 쓰지 않는다 | 2026-10-07 | [ADR-0006](adr/0006-write-lock-and-batch.md) |
+| D-070 | **Done만 분기로 나눈다.** Todo·Doing은 분기와 상관없이 이어진다 (D-019 개정) | 2026-10-07 | [ADR-0007](adr/0007-quarterly-archive-by-completed-date.md) |
+| D-071 | 분기는 **달력 분기**(Q1 1–3월 … Q4 10–12월)이고, 사용자 컴퓨터의 로컬 날짜로 판단한다 | 2026-10-07 | |
+| D-072 | Card가 Done에 들어가면 **완료 시각(`completedAt`)**을 기록하고, Done에서 나가면 지운다. 완료 시각이 지난 분기면 Board에서 빠지고 **아카이브**에서만 보인다. 아카이브 여부는 저장하지 않고 계산한다 | 2026-10-07 | [ADR-0007](adr/0007-quarterly-archive-by-completed-date.md) |
+| D-073 | 아카이브된 Card는 **보기 + "다시 열기"(Todo 맨 위로)**만 된다. 아카이브에서 삭제는 없다 | 2026-10-07 | |
+| D-074 | 회고 대시보드(**11-7 Quarterly Review**): 분기 선택, 완료 수, Project별 막대, 완료 목록. 주별 흐름·이전 분기 비교는 다음 후보 | 2026-10-07 | [PRD F11](PRD.md) |
+| D-075 | Board의 Done 열·열 개수·Project Progress는 **보이는 Card 기준**(Todo + Doing + 이번 분기 Done)이다 | 2026-10-07 | |
+| D-076 | 사용자의 실제(개인) 데이터는 **저장소에 커밋하지 않는다**(public 저장소). 로컬 DB에만 둔다 | 2026-10-07 | |
+| D-077 | 커밋 작성자 이름은 **Yusin Kim**이다 (이전 커밋은 그대로 둔다) | 2026-10-07 | |

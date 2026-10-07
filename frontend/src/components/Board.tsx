@@ -46,10 +46,16 @@ type Props = {
   filter: string | null;
   today: string;
   onAdd: (title: string, status: Status) => void;
-  onMove: (cardId: string, toStatus: Status, afterId: string | null) => void;
+  /** 드래그 흐름: 시작 → (미리보기 이동 …) → 놓기(서버 저장) 또는 취소(되돌리기) */
+  drag: {
+    start: () => void;
+    preview: (cardId: string, toStatus: Status, afterId: string | null) => void;
+    commit: (cardId: string) => void;
+    cancel: () => void;
+  };
 };
 
-export function Board({ cards, projects, filter, today, onAdd, onMove }: Props) {
+export function Board({ cards, projects, filter, today, onAdd, drag }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [composing, setComposing] = useState<Status | null>(null);
   const [doneCollapsed, setDoneCollapsed] = useState(readCollapsed);
@@ -78,23 +84,29 @@ export function Board({ cards, projects, filter, today, onAdd, onMove }: Props) 
     const overIndex = list.findIndex((c) => c.id === over.id);
     const afterId =
       overIndex === -1 ? (list.at(-1)?.id ?? null) : (list[overIndex - 1]?.id ?? null);
-    onMove(String(active.id), to, afterId);
+    drag.preview(String(active.id), to, afterId);
   }
 
-  // 같은 열 안의 최종 위치를 정한다.
+  // 같은 열 안의 최종 위치를 정하고, 최종 결과를 한 번만 서버에 저장한다.
   function handleDragEnd({ active, over }: DragEndEvent) {
     setActiveId(null);
-    if (!over || active.id === over.id) return;
-    const status = statusOf(String(active.id));
-    if (!status || statusOf(String(over.id)) !== status || String(over.id).startsWith('column:'))
-      return;
-
-    const ids = visible(status).map((c) => c.id);
-    const from = ids.indexOf(String(active.id));
-    const to = ids.indexOf(String(over.id));
-    ids.splice(from, 1);
-    ids.splice(to, 0, String(active.id));
-    onMove(String(active.id), status, ids[to - 1] ?? null);
+    const id = String(active.id);
+    const status = statusOf(id);
+    if (
+      over &&
+      active.id !== over.id &&
+      status &&
+      statusOf(String(over.id)) === status &&
+      !String(over.id).startsWith('column:')
+    ) {
+      const ids = visible(status).map((c) => c.id);
+      const from = ids.indexOf(id);
+      const to = ids.indexOf(String(over.id));
+      ids.splice(from, 1);
+      ids.splice(to, 0, id);
+      drag.preview(id, status, ids[to - 1] ?? null);
+    }
+    drag.commit(id);
   }
 
   function toggleDone() {
@@ -115,10 +127,16 @@ export function Board({ cards, projects, filter, today, onAdd, onMove }: Props) 
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
-      onDragStart={({ active }: DragStartEvent) => setActiveId(String(active.id))}
+      onDragStart={({ active }: DragStartEvent) => {
+        setActiveId(String(active.id));
+        drag.start();
+      }}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
-      onDragCancel={() => setActiveId(null)}
+      onDragCancel={() => {
+        setActiveId(null);
+        drag.cancel();
+      }}
     >
       <main className={styles.board}>
         {STATUSES.map((status) => {

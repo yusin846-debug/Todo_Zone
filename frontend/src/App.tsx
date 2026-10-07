@@ -1,37 +1,58 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useBoardActions, useBoardQuery, type BoardData } from './api/board.ts';
 import { Board } from './components/Board.tsx';
+import { BoardSkeleton, ServerDown, Toast } from './components/Status.tsx';
 import { Header, Hero, ProjectTags } from './components/Top.tsx';
-import { makeSampleBoard } from './dev/sampleData.ts';
 import { toDateKey } from './lib/dates.ts';
-import { useBoard } from './state/useBoard.ts';
+import { boardCards } from './lib/quarter.ts';
 
-// step11-2: 가짜 데이터로 Board를 그린다. 서버 연결은 11-4.
 export function App() {
-  const now = new Date();
-  const today = toDateKey(now);
-  const board = useBoard(() => makeSampleBoard(today));
-  const [filter, setFilter] = useState<string | null>(null);
-
-  const inboxId = board.projects.find((p) => p.isInbox)!.id;
+  const board = useBoardQuery();
 
   return (
     <>
       <Header />
-      <Hero cards={board.cards} today={today} hour={now.getHours()} />
-      <ProjectTags
-        projects={board.projects}
-        cards={board.cards}
-        filter={filter}
-        onFilter={setFilter}
-      />
+      {board.isPending ? (
+        <BoardSkeleton />
+      ) : board.isError ? (
+        <ServerDown onRetry={() => board.refetch()} />
+      ) : (
+        <BoardPage data={board.data} />
+      )}
+    </>
+  );
+}
+
+function BoardPage({ data }: { data: BoardData }) {
+  const [filter, setFilter] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const clearToast = useCallback(() => setToast(null), []);
+  const actions = useBoardActions(setToast);
+
+  const now = new Date();
+  const today = toDateKey(now);
+  const inboxId = data.projects.find((p) => p.isInbox)!.id;
+  // Board에는 Todo·Doing과 이번 분기 Done만 보인다. 지난 분기 Done은 Quarterly Review로 (D-072, D-075).
+  const visible = boardCards(data.cards, now);
+
+  return (
+    <>
+      <Hero cards={visible} today={today} hour={now.getHours()} />
+      <ProjectTags projects={data.projects} cards={visible} filter={filter} onFilter={setFilter} />
       <Board
-        cards={board.cards}
-        projects={board.projects}
+        cards={visible}
+        projects={data.projects}
         filter={filter}
         today={today}
-        onAdd={(title, status) => board.addCard(title, status, filter ?? inboxId)}
-        onMove={board.moveCard}
+        onAdd={(title, status) => actions.createCard(title, status, filter ?? inboxId)}
+        drag={{
+          start: actions.startDrag,
+          preview: actions.previewMove,
+          commit: actions.commitMove,
+          cancel: actions.cancelDrag,
+        }}
       />
+      <Toast message={toast} onDone={clearToast} />
     </>
   );
 }

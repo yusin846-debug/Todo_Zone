@@ -45,6 +45,7 @@ export const cards = sqliteTable(
     projectId: text('project_id')
       .notNull()
       .references(() => projects.id, { onDelete: 'restrict' }), // D-055
+    completedAt: text('completed_at'), // D-072: Done일 때만 값이 있다
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
   },
@@ -54,6 +55,7 @@ export const cards = sqliteTable(
     check('cards_memo_length', sql`length(memo) <= 2000`),
     check('cards_status', sql`status IN ('todo', 'doing', 'done')`),
     check('cards_position', sql`position >= 0`),
+    check('cards_completed_at', sql`(status = 'done') = (completed_at IS NOT NULL)`),
     check(
       'cards_due_date',
       sql`due_date IS NULL OR due_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`,
