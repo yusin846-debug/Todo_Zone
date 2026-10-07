@@ -21,10 +21,13 @@ export type Project = {
   updatedAt: string;
 };
 
+export type ChecklistEntry = { id: string; text: string; checked: boolean };
+
 export type Card = {
   id: string;
   title: string;
   memo: string;
+  checklist: ChecklistEntry[];
   dueDate: string | null; // YYYY-MM-DD, 시간대 없음 (D-051)
   status: Status;
   position: number; // status 안에서 0부터 빈틈없이 (D-049)

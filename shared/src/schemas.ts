@@ -48,6 +48,24 @@ const projectIcon = z.enum(PROJECT_ICONS, { error: '고를 수 없는 아이콘�
 
 const nonEmpty = (o: object) => Object.keys(o).length > 0;
 
+export const checklistInput = z
+  .array(
+    z.strictObject({
+      id: z.uuid('체크리스트 id가 올바르지 않아요.'),
+      text: z
+        .string()
+        .trim()
+        .min(1, '체크리스트 내용을 입력해 주세요.')
+        .refine(withinChars(LIMITS.checklistText), '체크리스트 내용은 200자까지 쓸 수 있어요.'),
+      checked: z.boolean(),
+    }),
+  )
+  .max(LIMITS.checklistEntries, '체크리스트는 50개까지 추가할 수 있어요.')
+  .refine(
+    (entries) => new Set(entries.map((entry) => entry.id)).size === entries.length,
+    '체크리스트 id가 중복됐어요.',
+  );
+
 export const createCardInput = z.strictObject({
   id: z.uuid('id가 올바르지 않아요.').optional(),
   title: cardTitle,
@@ -59,6 +77,7 @@ export const updateCardInput = z
   .strictObject({
     title: cardTitle,
     memo: cardMemo,
+    checklist: checklistInput,
     dueDate,
     projectId: id,
   })
@@ -100,6 +119,12 @@ export type CreateProjectInput = z.infer<typeof createProjectInput>;
 export type UpdateProjectInput = z.infer<typeof updateProjectInput>;
 
 export type ApiErrorCode =
-  'VALIDATION' | 'INBOX_LOCKED' | 'NOT_FOUND' | 'NAME_TAKEN' | 'PROJECT_LIMIT' | 'INTERNAL';
+  | 'VALIDATION'
+  | 'INBOX_LOCKED'
+  | 'NOT_FOUND'
+  | 'NAME_TAKEN'
+  | 'PROJECT_LIMIT'
+  | 'INTERNAL'
+  | 'UNAUTHORIZED';
 
 export type ApiError = { error: { code: ApiErrorCode; message: string } };

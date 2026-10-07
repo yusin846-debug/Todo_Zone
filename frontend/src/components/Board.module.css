@@ -195,6 +195,8 @@
 }
 
 .row .title {
+  flex: 1;
+  min-width: 0;
   margin: 0;
 }
 
@@ -232,6 +234,15 @@
   border-radius: var(--radius-pill);
   background: rgb(37 39 34 / 0.08);
   color: var(--ink);
+}
+
+.checklistProgress {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font: 500 11px/1.5 var(--font-body);
+  opacity: 0.75;
 }
 
 .due[data-kind='overdue'] {
@@ -301,6 +312,8 @@
   color: var(--paper-muted);
 }
 .card[data-tier='done'] .title {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: 15px;
   font-weight: 500;

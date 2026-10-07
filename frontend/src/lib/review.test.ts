@@ -20,6 +20,7 @@ const card = (id: string, projectId: string, completedAt: string | null): Card =
   id,
   title: id,
   memo: '',
+  checklist: [],
   dueDate: null,
   status: completedAt ? 'done' : 'todo',
   position: 0,

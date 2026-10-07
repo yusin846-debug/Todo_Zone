@@ -1,4 +1,7 @@
 import { useCallback, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ApiRequestError, request } from './api/client.ts';
+import { Login } from './components/Login.tsx';
 import { AnimatePresence, motion } from 'motion/react';
 import { useBoardActions, useBoardQuery, useProjectActions, type BoardData } from './api/board.ts';
 import { Board } from './components/Board.tsx';
@@ -6,7 +9,7 @@ import { CardPanel } from './components/CardPanel.tsx';
 import { ProjectsPanel } from './components/ProjectsPanel.tsx';
 import { ReviewPage } from './components/ReviewPage.tsx';
 import { BoardSkeleton, ServerDown, Toast } from './components/Status.tsx';
-import { AreaBento, Header, Hero } from './components/Top.tsx';
+import { AreaBento, Footer, Header, Hero } from './components/Top.tsx';
 import { toDateKey } from './lib/dates.ts';
 import type { Filter } from './lib/areas.ts';
 import { settle } from './lib/motion.ts';
@@ -15,19 +18,82 @@ import { useView, type View } from './lib/useView.ts';
 import styles from './App.module.css';
 
 export function App() {
+  const client = useQueryClient();
+  const session = useQuery({
+    queryKey: ['session'],
+    queryFn: () =>
+      request<{ required: boolean; authenticated: boolean }>('GET', '/api/auth/session'),
+    retry: false,
+  });
+  const [view, setView] = useView();
+  const refreshSession = () => {
+    void client.resetQueries({ queryKey: ['board'] });
+    void client.invalidateQueries({ queryKey: ['session'] });
+  };
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+  if (session.data?.authenticated)
+    return (
+      <AuthenticatedApp
+        onExpired={refreshSession}
+        onLogout={
+          session.data.required
+            ? async () => {
+                try {
+                  await request('POST', '/api/auth/logout');
+                  client.removeQueries({ queryKey: ['board'] });
+                  client.setQueryData(['session'], { required: true, authenticated: false });
+                } catch (err) {
+                  setLogoutError(err instanceof Error ? err.message : '로그아웃하지 못했어요.');
+                }
+              }
+            : undefined
+        }
+        logoutError={logoutError}
+      />
+    );
+  return (
+    <>
+      <Header view={view} onView={setView} />
+      {session.isPending ? (
+        <BoardSkeleton />
+      ) : session.isError ? (
+        <ServerDown onRetry={() => session.refetch()} />
+      ) : (
+        <Login onLogin={refreshSession} />
+      )}
+      <Footer />
+    </>
+  );
+}
+
+function AuthenticatedApp({
+  onLogout,
+  onExpired,
+  logoutError,
+}: {
+  onLogout?: () => void;
+  onExpired: () => void;
+  logoutError: string | null;
+}) {
   const board = useBoardQuery();
   const [view, setView] = useView();
 
   return (
     <>
-      <Header view={view} onView={setView} />
+      <Header view={view} onView={setView} onLogout={onLogout} />
+      {logoutError && <p role="alert">{logoutError}</p>}
       {board.isPending ? (
         <BoardSkeleton />
       ) : board.isError ? (
-        <ServerDown onRetry={() => board.refetch()} />
+        board.error instanceof ApiRequestError && board.error.code === 'UNAUTHORIZED' ? (
+          <Login onLogin={onExpired} />
+        ) : (
+          <ServerDown onRetry={() => board.refetch()} />
+        )
       ) : (
         <Ready data={board.data} view={view} />
       )}
+      <Footer onLogout={onLogout} />
     </>
   );
 }

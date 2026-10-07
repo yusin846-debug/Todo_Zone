@@ -100,6 +100,33 @@
   font-size: 13px;
 }
 
+.checklistRow {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 8px;
+}
+
+.checklistRow input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--c-sage);
+}
+
+.checklistRow input[data-checked='true'] {
+  color: var(--paper-muted);
+  text-decoration: line-through;
+}
+
+.checklistAdd {
+  display: flex;
+  gap: 8px;
+}
+
+.checklistAdd input {
+  min-width: 0;
+}
+
 .muted {
   color: var(--paper-muted);
 }

@@ -77,6 +77,43 @@ describe('POST /api/cards (F2)', () => {
 });
 
 describe('PATCH /api/cards/:id (F3)', () => {
+  it('체크리스트 추가·수정·체크·삭제를 저장하고 Status는 유지한다', async () => {
+    const { api, addCard } = await setup();
+    const { id } = await addCard('단계가 있는 Card');
+    const entry = { id: crypto.randomUUID(), text: ' 첫 단계 ', checked: false };
+    const added = await api
+      .patch(`/api/cards/${id}`)
+      .send({ checklist: [entry] })
+      .expect(200);
+    expect(added.body.checklist).toEqual([{ ...entry, text: '첫 단계' }]);
+    const updated = { ...entry, text: '수정한 단계', checked: true };
+    await api
+      .patch(`/api/cards/${id}`)
+      .send({ checklist: [updated] })
+      .expect(200);
+    const board = await api.get('/api/board').expect(200);
+    expect(board.body.cards.find((c: { id: string }) => c.id === id)).toMatchObject({
+      checklist: [updated],
+      status: 'todo',
+      completedAt: null,
+    });
+    const cleared = await api.patch(`/api/cards/${id}`).send({ checklist: [] }).expect(200);
+    expect(cleared.body.checklist).toEqual([]);
+  });
+
+  it('빈 내용·중복 id·잘못된 체크 값·개수와 길이 초과는 거부한다', async () => {
+    const { api, addCard } = await setup();
+    const { id } = await addCard('x');
+    const entry = { id: crypto.randomUUID(), text: '단계', checked: false };
+    for (const checklist of [
+      [{ ...entry, text: ' ' }],
+      [entry, entry],
+      [{ ...entry, checked: 'yes' }],
+      [{ ...entry, text: '가'.repeat(201) }],
+      Array.from({ length: 51 }, () => ({ ...entry, id: crypto.randomUUID() })),
+    ])
+      await api.patch(`/api/cards/${id}`).send({ checklist }).expect(400);
+  });
   it('제목·메모·Due date·Project를 바꾸고, null로 Due date를 지운다', async () => {
     const { api, addCard, addProject } = await setup();
     const card = await addCard('원래 제목');

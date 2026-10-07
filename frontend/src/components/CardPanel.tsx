@@ -5,6 +5,7 @@ import {
   charCount,
   type Area,
   type Card,
+  type ChecklistEntry,
   type Project,
   type Status,
   type UpdateCardInput,
@@ -41,6 +42,9 @@ export function CardPanel({
 }) {
   const [title, setTitle] = useState(card.title);
   const [memo, setMemo] = useState(card.memo);
+  const [checklist, setChecklist] = useState<ChecklistEntry[]>(card.checklist);
+  const [newEntry, setNewEntry] = useState('');
+  const [newEntryId, setNewEntryId] = useState(() => crypto.randomUUID());
   const [dueDate, setDueDate] = useState(card.dueDate ?? '');
   const [status, setStatus] = useState<Status>(card.status);
   const [projectId, setProjectId] = useState(card.projectId);
@@ -50,11 +54,24 @@ export function CardPanel({
   const patch: UpdateCardInput = {};
   if (title.trim() !== card.title) patch.title = title.trim();
   if (memo.trim() !== card.memo) patch.memo = memo.trim();
+  const cleanedChecklist = checklist.map((entry) => ({ ...entry, text: entry.text.trim() }));
+  if (newEntry.trim() && checklist.length < LIMITS.checklistEntries) {
+    cleanedChecklist.push({ id: newEntryId, text: newEntry.trim(), checked: false });
+  }
+  if (JSON.stringify(cleanedChecklist) !== JSON.stringify(card.checklist))
+    patch.checklist = cleanedChecklist;
   if ((dueDate || null) !== card.dueDate) patch.dueDate = dueDate || null;
   if (projectId !== card.projectId) patch.projectId = projectId;
   const statusChange = status !== card.status ? status : null;
   const dirty = Object.keys(patch).length > 0 || statusChange !== null;
   const titleEmpty = title.trim() === '';
+  const checklistInvalid = cleanedChecklist.some((entry) => !entry.text);
+  const addEntry = () => {
+    if (!newEntry.trim() || checklist.length >= LIMITS.checklistEntries) return;
+    setChecklist([...checklist, { id: newEntryId, text: newEntry.trim(), checked: false }]);
+    setNewEntry('');
+    setNewEntryId(crypto.randomUUID());
+  };
 
   const close = () => (dirty ? setConfirm('discard') : onClose());
 
@@ -71,7 +88,7 @@ export function CardPanel({
             <button
               type="button"
               className={styles.primaryBtn}
-              disabled={titleEmpty || !dirty}
+              disabled={titleEmpty || checklistInvalid || !dirty}
               onClick={() => {
                 onSave(patch, statusChange);
                 onClose();
@@ -109,6 +126,79 @@ export function CardPanel({
             {charCount(memo).toLocaleString()} / {LIMITS.cardMemo.toLocaleString()}
           </span>
         </label>
+
+        <section className={styles.field} aria-label="Checklist">
+          <div className={styles.fieldFoot}>
+            <span className={styles.eyebrow}>Checklist</span>
+            <span>
+              {checklist.filter((entry) => entry.checked).length} / {checklist.length}
+            </span>
+          </div>
+          {checklist.map((entry, index) => (
+            <div className={styles.checklistRow} key={entry.id}>
+              <input
+                type="checkbox"
+                aria-label={`체크리스트 ${index + 1} 완료`}
+                checked={entry.checked}
+                onChange={(e) =>
+                  setChecklist(
+                    checklist.map((item) =>
+                      item.id === entry.id ? { ...item, checked: e.target.checked } : item,
+                    ),
+                  )
+                }
+              />
+              <input
+                className={styles.input}
+                aria-label={`체크리스트 ${index + 1} 내용`}
+                value={entry.text}
+                data-checked={entry.checked}
+                onChange={(e) =>
+                  setChecklist(
+                    checklist.map((item) =>
+                      item.id === entry.id
+                        ? { ...item, text: clip(e.target.value, LIMITS.checklistText) }
+                        : item,
+                    ),
+                  )
+                }
+              />
+              <button
+                type="button"
+                className={styles.iconBtn}
+                aria-label={`체크리스트 ${index + 1} 삭제`}
+                onClick={() => setChecklist(checklist.filter((item) => item.id !== entry.id))}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <div className={styles.checklistAdd}>
+            <input
+              className={styles.input}
+              aria-label="새 체크리스트 내용"
+              placeholder="작은 단계 추가"
+              value={newEntry}
+              disabled={checklist.length >= LIMITS.checklistEntries}
+              onChange={(e) => setNewEntry(clip(e.target.value, LIMITS.checklistText))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  addEntry();
+                }
+              }}
+            />
+            <button
+              type="button"
+              className={styles.ghostBtn}
+              onClick={addEntry}
+              disabled={!newEntry.trim() || checklist.length >= LIMITS.checklistEntries}
+            >
+              Add
+            </button>
+          </div>
+          {checklistInvalid && <p className={styles.error}>빈 항목을 입력하거나 삭제해 주세요.</p>}
+        </section>
 
         {/* 선택 칸은 직접 만든 부품 (D-080): 애니메이션, 한글 날짜 */}
         <div className={styles.field}>

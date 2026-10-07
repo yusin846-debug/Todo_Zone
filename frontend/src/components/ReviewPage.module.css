@@ -168,27 +168,22 @@
 }
 
 .barFill[data-color='inbox'],
-.dot[data-color='inbox'],
 .check[data-color='inbox'] {
   background: var(--c-inbox);
 }
 .barFill[data-color='mist'],
-.dot[data-color='mist'],
 .check[data-color='mist'] {
   background: var(--c-mist);
 }
 .barFill[data-color='gold'],
-.dot[data-color='gold'],
 .check[data-color='gold'] {
   background: var(--c-gold);
 }
 .barFill[data-color='sage'],
-.dot[data-color='sage'],
 .check[data-color='sage'] {
   background: var(--c-sage);
 }
 .barFill[data-color='salmon'],
-.dot[data-color='salmon'],
 .check[data-color='salmon'] {
   background: var(--c-salmon);
 }
@@ -208,12 +203,6 @@
   margin: 0 0 10px;
   font-size: 15px;
   font-weight: 600;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
 }
 
 .list {

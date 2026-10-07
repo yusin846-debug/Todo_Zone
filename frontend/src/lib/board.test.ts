@@ -15,6 +15,7 @@ function card(
     id,
     title: id,
     memo: '',
+    checklist: [],
     dueDate: null,
     status,
     position,

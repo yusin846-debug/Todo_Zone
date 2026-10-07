@@ -5,7 +5,7 @@ import {
   type Project,
   type UpdateProjectInput,
 } from '@todo-zone/shared';
-import type { Db } from '../db/client.ts';
+import type { Store } from '../db/client.ts';
 import { areas, cards, projects } from '../db/schema.ts';
 import { AppError, inboxLocked, notFound } from '../errors.ts';
 import { runBatch, withWriteLock } from './lock.ts';
@@ -30,27 +30,27 @@ const columns = {
 };
 
 /** Inbox가 먼저, 나머지는 만든 순서 */
-export function listProjects(db: Db): Promise<Project[]> {
+export function listProjects(db: Store): Promise<Project[]> {
   return db
     .select(columns)
     .from(projects)
     .orderBy(desc(projects.isInbox), asc(projects.createdAt), asc(sql`rowid`));
 }
 
-async function findProject(db: Db, id: string): Promise<Project> {
+async function findProject(db: Store, id: string): Promise<Project> {
   const [found] = await db.select(columns).from(projects).where(eq(projects.id, id));
   if (!found) throw notFound();
   return found;
 }
 
 /** Area가 있는지 확인한다. null은 "Area 없음"이라 통과 (D-083) */
-async function assertArea(db: Db, areaId: string | null | undefined) {
+async function assertArea(db: Store, areaId: string | null | undefined) {
   if (!areaId) return;
   const [found] = await db.select({ id: areas.id }).from(areas).where(eq(areas.id, areaId));
   if (!found) throw notFound();
 }
 
-async function assertNameFree(db: Db, name: string, exceptId?: string) {
+async function assertNameFree(db: Store, name: string, exceptId?: string) {
   const key = nameKeyOf(name);
   const where = exceptId
     ? and(eq(projects.nameKey, key), ne(projects.id, exceptId))
@@ -59,8 +59,8 @@ async function assertNameFree(db: Db, name: string, exceptId?: string) {
   if (clash) throw nameTaken();
 }
 
-export function createProject(db: Db, input: CreateProjectInput): Promise<Project> {
-  return withWriteLock(async () => {
+export function createProject(db: Store, input: CreateProjectInput): Promise<Project> {
+  return withWriteLock(db, async (db) => {
     const [{ total }] = (await db.select({ total: count() }).from(projects)) as [{ total: number }];
     if (total >= LIMITS.projects) throw limitReached();
     await assertNameFree(db, input.name);
@@ -84,8 +84,8 @@ export function createProject(db: Db, input: CreateProjectInput): Promise<Projec
   });
 }
 
-export function updateProject(db: Db, id: string, input: UpdateProjectInput): Promise<Project> {
-  return withWriteLock(async () => {
+export function updateProject(db: Store, id: string, input: UpdateProjectInput): Promise<Project> {
+  return withWriteLock(db, async (db) => {
     const project = await findProject(db, id);
     if (project.isInbox) throw inboxLocked();
     if (input.name !== undefined) await assertNameFree(db, input.name, id);
@@ -105,8 +105,8 @@ export function updateProject(db: Db, id: string, input: UpdateProjectInput): Pr
 }
 
 /** Card를 Inbox로 옮긴 뒤 Project를 지운다. 하나의 batch(트랜잭션)로 처리한다. */
-export function deleteProject(db: Db, id: string): Promise<{ movedCards: number }> {
-  return withWriteLock(async () => {
+export function deleteProject(db: Store, id: string): Promise<{ movedCards: number }> {
+  return withWriteLock(db, async (db) => {
     const project = await findProject(db, id);
     if (project.isInbox) throw inboxLocked();
 

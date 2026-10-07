@@ -33,6 +33,21 @@ const fixture = [
 ];
 
 describe('Board ↔ 서버 연결 (step11-4)', () => {
+  it('로그인 전에는 Board를 요청하지 않고 로그인·로그아웃하면 개인 화면이 전환된다', async () => {
+    const api = installFakeApi(fixture, { auth: true });
+    renderApp();
+    const password = await screen.findByLabelText('Password');
+    expect(api.calls.some((call) => call.path === '/api/board')).toBe(false);
+    fireEvent.change(password, { target: { value: 'wrong' } });
+    fireEvent.submit(password.closest('form')!);
+    expect(await screen.findByRole('alert')).toBeTruthy();
+    fireEvent.change(password, { target: { value: 'test-password' } });
+    fireEvent.submit(password.closest('form')!);
+    await screen.findByText('자격증 시험 예약');
+    fireEvent.click(screen.getByRole('button', { name: 'Log out' }));
+    await screen.findByRole('button', { name: 'Log in' });
+    expect(screen.queryByText('자격증 시험 예약')).toBeNull();
+  });
   it('서버에서 Board를 불러오고, 지난 분기 Done은 보이지 않는다 (D-072, D-075)', async () => {
     installFakeApi(fixture);
     renderApp();

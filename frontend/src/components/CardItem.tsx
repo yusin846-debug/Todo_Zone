@@ -26,6 +26,16 @@ function DueBadge({ card, today }: { card: Card; today: string }) {
 
 /** Card 한 장의 모양. 크기 단계는 SCREEN-SPEC S1 (D-060). */
 export function CardView({ card, project, color, tier, today }: Props) {
+  const checklistProgress =
+    card.checklist.length > 0 ? (
+      <span
+        className={styles.checklistProgress}
+        aria-label={`체크리스트 ${card.checklist.filter((entry) => entry.checked).length}/${card.checklist.length}`}
+      >
+        <Check size={12} aria-hidden="true" />
+        {card.checklist.filter((entry) => entry.checked).length} / {card.checklist.length}
+      </span>
+    ) : null;
   if (tier === 'done') {
     return (
       <>
@@ -33,6 +43,7 @@ export function CardView({ card, project, color, tier, today }: Props) {
           <Check size={13} strokeWidth={2.5} aria-hidden="true" />
         </span>
         <h3 className={styles.title}>{card.title}</h3>
+        {checklistProgress}
       </>
     );
   }
@@ -48,6 +59,7 @@ export function CardView({ card, project, color, tier, today }: Props) {
       <div className={styles.row}>
         {chip}
         <h3 className={styles.title}>{card.title}</h3>
+        {checklistProgress}
       </div>
     );
   }
@@ -62,6 +74,7 @@ export function CardView({ card, project, color, tier, today }: Props) {
         <div className={styles.meta}>
           <DueBadge card={card} today={today} />
           <span>{project.name}</span>
+          {checklistProgress}
         </div>
       </>
     );
@@ -76,9 +89,10 @@ export function CardView({ card, project, color, tier, today }: Props) {
       </div>
       <h3 className={styles.title}>{card.title}</h3>
       {card.memo.trim() !== '' && <p className={styles.memo}>{card.memo}</p>}
-      {card.dueDate !== null && (
+      {(card.dueDate !== null || checklistProgress) && (
         <div className={styles.meta}>
           <DueBadge card={card} today={today} />
+          {checklistProgress}
         </div>
       )}
     </>

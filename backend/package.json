@@ -8,7 +8,9 @@
     "start": "tsx src/index.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "auth:setup": "tsx src/auth-setup.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

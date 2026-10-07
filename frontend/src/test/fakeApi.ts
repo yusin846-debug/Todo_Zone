@@ -59,6 +59,7 @@ export function card(
     id,
     title: id,
     memo: '',
+    checklist: [],
     dueDate: null,
     status,
     position,
@@ -76,7 +77,8 @@ const json = (body: unknown, status = 200) =>
 const conflict = (message: string) => json({ error: { code: 'NAME_TAKEN', message } }, 409);
 
 /** fetch를 가짜 서버로 바꾼다. down이면 모든 요청이 네트워크 오류로 실패한다. */
-export function installFakeApi(initial: Card[], opts: { down?: boolean } = {}) {
+export function installFakeApi(initial: Card[], opts: { down?: boolean; auth?: boolean } = {}) {
+  let authenticated = !opts.auth;
   let cards = [...initial];
   let projectList = [...projects];
   let areaList = [...areas];
@@ -89,6 +91,18 @@ export function installFakeApi(initial: Card[], opts: { down?: boolean } = {}) {
     if (opts.down) throw new TypeError('Failed to fetch');
     const now = new Date().toISOString();
 
+    if (method === 'GET' && path === '/api/auth/session')
+      return json({ required: !!opts.auth, authenticated });
+    if (method === 'POST' && path === '/api/auth/login') {
+      if (body.password !== 'test-password')
+        return json({ error: { code: 'UNAUTHORIZED', message: '로그인이 필요해요.' } }, 401);
+      authenticated = true;
+      return json({ authenticated });
+    }
+    if (method === 'POST' && path === '/api/auth/logout') {
+      authenticated = false;
+      return new Response(null, { status: 204 });
+    }
     if (method === 'GET' && path === '/api/board')
       return json({ areas: areaList, projects: projectList, cards });
 

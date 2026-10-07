@@ -31,6 +31,7 @@ export function addCard(
   const created: Card = {
     ...input,
     memo: '',
+    checklist: [],
     dueDate: null,
     position: 0,
     completedAt: input.status === 'done' ? now : null, // D-072

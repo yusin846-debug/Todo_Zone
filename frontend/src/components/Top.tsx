@@ -8,10 +8,19 @@ import { droplet, drip, dripParent, press } from '../lib/motion.ts';
 import type { View } from '../lib/useView.ts';
 import { ProjectIconView } from './icons.tsx';
 import { Segmented } from './Segmented.tsx';
+import { AreaArtwork } from './AreaArtwork.tsx';
 import styles from './Top.module.css';
 
 /** 헤더: 워드마크 / Board·Review 전환(D-081) / 한 줄 */
-export function Header({ view, onView }: { view: View; onView: (view: View) => void }) {
+export function Header({
+  view,
+  onView,
+  onLogout,
+}: {
+  view: View;
+  onView: (view: View) => void;
+  onLogout?: () => void;
+}) {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
@@ -29,8 +38,46 @@ export function Header({ view, onView }: { view: View; onView: (view: View) => v
           onChange={onView}
         />
       </div>
-      <div className={styles.note}>One card at a time.</div>
+      <div className={styles.note}>
+        <div>One card at a time.</div>
+        <small className={styles.credit}>Built by Yushin</small>
+        {onLogout && (
+          <button className={styles.logout} type="button" onClick={onLogout}>
+            Log out
+          </button>
+        )}
+      </div>
     </header>
+  );
+}
+
+export function Footer({ onLogout }: { onLogout?: () => void }) {
+  return (
+    <footer className={styles.footer}>
+      <span>Built by Yushin</span>
+      <nav aria-label="Yushin links">
+        <a href="https://yushin-portfolio.vercel.app/" target="_blank" rel="noopener noreferrer">
+          Portfolio
+        </a>
+        <a
+          href="https://www.linkedin.com/in/%EC%9C%A0%EC%8B%A0-%EA%B9%80-289428415/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          LinkedIn
+        </a>
+        {onLogout && (
+          <button
+            className={styles.footerLogout}
+            type="button"
+            aria-label="로그아웃"
+            onClick={onLogout}
+          >
+            Log out
+          </button>
+        )}
+      </nav>
+    </footer>
   );
 }
 
@@ -141,34 +188,46 @@ export function AreaBento({
                 />
               )}
               <div className={styles.tileHead}>
+                <AreaArtwork className={styles.tileArtwork} color={g.area?.color ?? 'inbox'} />
                 <span className={styles.tileName}>{g.area?.name ?? 'Unsorted'}</span>
-                <span className={styles.tileDone}>{done} done</span>
               </div>
-              <div className={styles.tileBig}>
-                {open.length}
-                <small>open{doing > 0 && ` · ${doing} doing`}</small>
+              <div className={styles.tileBody}>
+                <div className={styles.tileStats}>
+                  <div className={styles.tileBig}>
+                    {open.length}
+                    <small>Open</small>
+                  </div>
+                  {overdue > 0 && <div className={styles.tileOverdue}>지난 마감 {overdue}장</div>}
+                </div>
+                <div className={styles.chips}>
+                  {g.projects.map((p) => {
+                    const selected = isOn('project', p.id);
+                    const { done: pd, total } = progressOf(cards, p.id);
+                    return (
+                      <motion.button
+                        key={p.id}
+                        type="button"
+                        className={styles.chip}
+                        aria-pressed={selected}
+                        aria-label={`${p.name} ${pd}/${total}`}
+                        title={`${p.name} · ${pd} / ${total}`}
+                        onClick={() => onFilter(selected ? null : { kind: 'project', id: p.id })}
+                        {...press}
+                      >
+                        <ProjectIconView icon={p.icon} size={14} />
+                        <span>{p.name}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
               </div>
-              {overdue > 0 && <div className={styles.tileOverdue}>지난 마감 {overdue}장</div>}
-              <div className={styles.chips}>
-                {g.projects.map((p) => {
-                  const selected = isOn('project', p.id);
-                  const { done: pd, total } = progressOf(cards, p.id);
-                  return (
-                    <motion.button
-                      key={p.id}
-                      type="button"
-                      className={styles.chip}
-                      aria-pressed={selected}
-                      aria-label={`${p.name} ${pd}/${total}`}
-                      title={`${p.name} · ${pd} / ${total}`}
-                      onClick={() => onFilter(selected ? null : { kind: 'project', id: p.id })}
-                      {...press}
-                    >
-                      <ProjectIconView icon={p.icon} size={14} />
-                      <span>{p.name}</span>
-                    </motion.button>
-                  );
-                })}
+              <div className={styles.tileFooter}>
+                <span>
+                  <b>{doing}</b> Doing
+                </span>
+                <span>
+                  <b>{done}</b> Done
+                </span>
               </div>
             </motion.div>
           );

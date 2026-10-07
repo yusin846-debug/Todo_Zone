@@ -1,0 +1,1 @@
+ALTER TABLE `cards` ADD `checklist` text DEFAULT '[]' NOT NULL;

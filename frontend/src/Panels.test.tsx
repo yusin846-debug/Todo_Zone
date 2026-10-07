@@ -35,6 +35,36 @@ async function openCard(title: string) {
 }
 
 describe('Card 상세 패널 (S2, F3·F4·F7)', () => {
+  it('체크리스트를 추가·수정·체크·삭제하고 저장한 상태로 다시 연다', async () => {
+    const api = installFakeApi(fixture);
+    renderApp();
+    let p = await openCard('읽을 책 고르기');
+    const add = (text: string) => {
+      fireEvent.change(p.getByRole('textbox', { name: '새 체크리스트 내용' }), {
+        target: { value: text },
+      });
+      fireEvent.click(p.getByRole('button', { name: 'Add' }));
+    };
+    add('첫 단계');
+    add('삭제할 단계');
+    fireEvent.change(p.getByRole('textbox', { name: '체크리스트 1 내용' }), {
+      target: { value: '수정한 단계' },
+    });
+    fireEvent.click(p.getByRole('checkbox', { name: '체크리스트 1 완료' }));
+    fireEvent.click(p.getByRole('button', { name: '체크리스트 2 삭제' }));
+    fireEvent.click(p.getByRole('button', { name: 'Save' }));
+    await waitFor(() =>
+      expect(api.cards().find((c) => c.title === '읽을 책 고르기')?.checklist).toHaveLength(1),
+    );
+    expect(api.cards().find((c) => c.title === '읽을 책 고르기')?.status).toBe('todo');
+    p = await openCard('읽을 책 고르기');
+    expect(
+      (p.getByRole('checkbox', { name: '체크리스트 1 완료' }) as HTMLInputElement).checked,
+    ).toBe(true);
+    expect((p.getByRole('textbox', { name: '체크리스트 1 내용' }) as HTMLInputElement).value).toBe(
+      '수정한 단계',
+    );
+  });
   it('카드를 누르면 지금 값이 채워진 패널이 열린다', async () => {
     installFakeApi(fixture);
     renderApp();

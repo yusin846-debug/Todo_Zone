@@ -7,6 +7,7 @@ import { droplet, drip, dripParent, press, settle } from '../lib/motion.ts';
 import { quarterKey } from '../lib/quarter.ts';
 import { doneByArea, doneInQuarter, quarterLabel, quarterOptions } from '../lib/review.ts';
 import { ProjectIconView } from './icons.tsx';
+import { AreaArtwork } from './AreaArtwork.tsx';
 import styles from './ReviewPage.module.css';
 
 /** 0부터 n까지 물방울 스프링으로 올라가는 숫자 */
@@ -130,7 +131,7 @@ export function ReviewPage({
                 {groups.map((g, i) => (
                   <li key={g.area?.id ?? 'none'} className={styles.barRow}>
                     <span className={styles.barName}>
-                      <span className={styles.dot} data-color={g.color} />
+                      <AreaArtwork color={g.color} size={28} />
                       {g.area?.name ?? 'Unsorted'}
                     </span>
                     <span className={styles.barTrack}>
@@ -164,7 +165,7 @@ export function ReviewPage({
                     aria-label={`${g.area?.name ?? 'Unsorted'} 완료 목록`}
                   >
                     <h3 className={styles.groupTitle}>
-                      <span className={styles.dot} data-color={g.color} />
+                      <AreaArtwork color={g.color} size={28} />
                       {g.area?.name ?? 'Unsorted'}
                     </h3>
                     <motion.ul

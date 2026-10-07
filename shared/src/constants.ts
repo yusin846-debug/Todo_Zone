@@ -3,6 +3,8 @@
 export const LIMITS = {
   cardTitle: 100, // D-031
   cardMemo: 2000, // D-031
+  checklistEntries: 50,
+  checklistText: 200,
   projectName: 30, // D-065
   projects: 20, // D-034 (Inbox 포함)
   areas: 8, // D-084

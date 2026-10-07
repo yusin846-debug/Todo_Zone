@@ -6,7 +6,7 @@ import {
   type CreateAreaInput,
   type UpdateAreaInput,
 } from '@todo-zone/shared';
-import type { Db } from '../db/client.ts';
+import type { Store } from '../db/client.ts';
 import { areas, projects } from '../db/schema.ts';
 import { AppError, notFound } from '../errors.ts';
 import { runBatch, withWriteLock } from './lock.ts';
@@ -24,20 +24,20 @@ const columns = {
 };
 
 /** 만든 순서 (태그 줄과 Review의 순서) */
-export function listAreas(db: Db): Promise<Area[]> {
+export function listAreas(db: Store): Promise<Area[]> {
   return db
     .select(columns)
     .from(areas)
     .orderBy(asc(areas.createdAt), asc(sql`rowid`));
 }
 
-async function findArea(db: Db, id: string): Promise<Area> {
+async function findArea(db: Store, id: string): Promise<Area> {
   const [found] = await db.select(columns).from(areas).where(eq(areas.id, id));
   if (!found) throw notFound();
   return found;
 }
 
-async function assertNameFree(db: Db, name: string, exceptId?: string) {
+async function assertNameFree(db: Store, name: string, exceptId?: string) {
   const key = nameKeyOf(name);
   const where = exceptId
     ? and(eq(areas.nameKey, key), ne(areas.id, exceptId))
@@ -46,8 +46,8 @@ async function assertNameFree(db: Db, name: string, exceptId?: string) {
   if (clash) throw new AppError(409, 'NAME_TAKEN', '이미 같은 이름의 Area가 있어요.');
 }
 
-export function createArea(db: Db, input: CreateAreaInput): Promise<Area> {
-  return withWriteLock(async () => {
+export function createArea(db: Store, input: CreateAreaInput): Promise<Area> {
+  return withWriteLock(db, async (db) => {
     const [{ total }] = (await db.select({ total: count() }).from(areas)) as [{ total: number }];
     if (total >= LIMITS.areas)
       throw new AppError(409, 'PROJECT_LIMIT', `Area는 ${LIMITS.areas}개까지 만들 수 있어요.`);
@@ -69,8 +69,8 @@ export function createArea(db: Db, input: CreateAreaInput): Promise<Area> {
   });
 }
 
-export function updateArea(db: Db, id: string, input: UpdateAreaInput): Promise<Area> {
-  return withWriteLock(async () => {
+export function updateArea(db: Store, id: string, input: UpdateAreaInput): Promise<Area> {
+  return withWriteLock(db, async (db) => {
     await findArea(db, id);
     if (input.name !== undefined) await assertNameFree(db, input.name, id);
     const [updated] = await db
@@ -87,8 +87,8 @@ export function updateArea(db: Db, id: string, input: UpdateAreaInput): Promise<
 }
 
 /** Area를 지우면 그 Project는 Area 없음(크림)이 된다. Card는 그대로 (D-084) */
-export function deleteArea(db: Db, id: string): Promise<{ unassignedProjects: number }> {
-  return withWriteLock(async () => {
+export function deleteArea(db: Store, id: string): Promise<{ unassignedProjects: number }> {
+  return withWriteLock(db, async (db) => {
     await findArea(db, id);
     const [{ n }] = (await db
       .select({ n: count() })

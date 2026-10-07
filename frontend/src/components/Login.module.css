@@ -1,0 +1,54 @@
+.login {
+  display: grid;
+  place-items: center;
+  min-height: 70vh;
+  padding: 40px 24px;
+}
+.login form {
+  width: min(360px, 100%);
+}
+.login small {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--paper-muted);
+}
+.login h1 {
+  font: 650 36px/1.1 var(--font-display);
+  letter-spacing: -0.04em;
+}
+.login p {
+  color: var(--paper-muted);
+  font-size: 14px;
+}
+.login label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 28px;
+  font-size: 12px;
+}
+.login input {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--paper);
+  font: inherit;
+}
+.login button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  color: var(--ink);
+  font: 600 14px/1.5 var(--font-body);
+  cursor: pointer;
+}
+.login button:disabled {
+  opacity: 0.5;
+}
+.login p[role='alert'] {
+  color: var(--danger);
+}

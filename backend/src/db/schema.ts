@@ -1,8 +1,18 @@
 import { sql } from 'drizzle-orm';
 import { check, index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
-import type { AreaColor, ProjectIcon, Status } from '@todo-zone/shared';
+import type { AreaColor, ChecklistEntry, ProjectIcon, Status } from '@todo-zone/shared';
 
 // docs/DATA-MODEL.md 2장. DB 제약은 services 버그를 막는 마지막 안전장치다 (DATA-MODEL 5).
+
+export const authAttempts = sqliteTable('auth_attempts', {
+  id: text('id').primaryKey(),
+  count: integer('count').notNull(),
+  resetAt: integer('reset_at').notNull(),
+});
+export const authSessions = sqliteTable('auth_sessions', {
+  id: text('id').primaryKey(),
+  expiresAt: integer('expires_at').notNull(),
+});
 
 // D-083, D-084: Project를 묶는 상위 영역. 카드 색은 Area가 정한다 (D-086)
 export const areas = sqliteTable(
@@ -49,6 +59,7 @@ export const cards = sqliteTable(
     id: text('id').primaryKey(),
     title: text('title').notNull(),
     memo: text('memo').notNull().default(''),
+    checklist: text('checklist', { mode: 'json' }).$type<ChecklistEntry[]>().notNull().default([]),
     dueDate: text('due_date'),
     status: text('status').$type<Status>().notNull(),
     position: integer('position').notNull(),

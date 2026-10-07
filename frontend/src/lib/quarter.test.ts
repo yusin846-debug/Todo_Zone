@@ -20,6 +20,7 @@ describe('boardCards (D-072, D-075)', () => {
     id,
     title: id,
     memo: '',
+    checklist: [],
     dueDate: null,
     status,
     position: 0,
