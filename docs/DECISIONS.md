@@ -20,7 +20,7 @@
 | D-013 | 같은 Status 안의 카드 순서는 **사용자가 드래그로** 정한다. 새 카드는 맨 위에 추가된다 | 2026-10-07 | |
 | D-014 | **Board는 1개**다. 위쪽 Project 줄로 **필터**하고, Project 줄에 진행률을 표시한다 | 2026-10-07 | |
 | D-015 | 카드 삭제는 **확인 창을 띄운 뒤 영구 삭제**한다. Undo는 MVP 이후 후보로 둔다 | 2026-10-07 | |
-| D-016 | Project 규칙: 이름 중복 **금지**, 색 중복 **허용**(파스텔 5색). Project를 삭제하면 그 카드는 **Inbox로 이동**한다. Inbox는 삭제와 이름 변경이 불가능하다 | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
+| D-016 | Project 규칙: 이름 중복 **금지**, 색 중복 **허용**(파스텔 5색). Project를 삭제하면 그 카드는 **Inbox로 이동**한다. Inbox는 삭제와 이름 변경이 불가능하다 → **색 규칙은 D-042로 개정** | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
 | D-017 | Due date는 **날짜만** 가진다. Overdue 카드는 Due date를 경고색으로 표시하고, Done 카드는 경고하지 않는다. 표기는 "오늘/내일/어제", 그 외 "10월 9일 (목)" | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
 | D-018 | 카드는 **모든 Status 열** 맨 위의 "+ New card"에서 **제목만** 입력해 만든다. 필터가 켜져 있으면 그 Project에, 아니면 **Inbox**에 넣는다. 메모와 Due date는 상세 패널에서 입력한다 | 2026-10-07 | |
 | D-019 | Done 카드는 **전부 표시**하고, Done 열은 **접을 수 있다**. Archive는 MVP 이후 후보로 둔다 | 2026-10-07 | |
@@ -46,3 +46,10 @@
 | D-039 | 스타일은 **CSS Modules + CSS 변수(디자인 토큰)**로 한다 | 2026-10-07 | |
 | D-040 | 개발은 루트에서 `npm run dev` 한 번으로 실행한다. frontend는 5173, backend는 **127.0.0.1:3000**이고 Vite가 `/api`를 백엔드로 넘긴다(프록시) | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
 | D-041 | MVP는 **로컬 전용**이다. MVP 이후 **Vercel 배포** 마일스톤을 둔다. 배포 전에 인증을 추가하도록 ADR-0002를 재검토한다 | 2026-10-07 | [ADR-0005](adr/0005-drizzle-libsql-deploy-ready.md) |
+| D-042 | 일반 Project는 **4색**(라벤더, 버터, 세이지, 살구)에서만 고른다. **흰색은 Inbox 전용**이다. 새 Project의 색은 4색을 순서대로 돌아가며 자동 지정한다 (D-016 개정) | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
+| D-043 | 영어 타이틀 폰트는 **Inter Tight**, 한글·본문은 **Pretendard**다 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
+| D-044 | Pretendard는 **jsDelivr CDN**, Inter Tight는 Google Fonts에서 불러온다 | 2026-10-07 | |
+| D-045 | Done 열은 **펼친 상태로 시작**하고, 접힘 상태는 브라우저(localStorage)에 기억한다 | 2026-10-07 | |
+| D-046 | 살구색은 대비 기준(4.5) 때문에 `#F2C1AE`로 조정한다. Overdue는 카드 색과 상관없이 **어두운 배지**(`#222` 배경, `#FF9B8F` 글자)로 표시한다 | 2026-10-07 | [SCREEN-SPEC 1.1](SCREEN-SPEC.md) |
+| D-047 | Card 상세와 Projects 관리는 데스크톱에서 **오른쪽 400px 패널**, 모바일에서 **전체 화면 시트**로 연다 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
+| D-048 | 화면 확인용 **HTML 시안**을 `docs/mockups/`에 둔다. 구현 코드는 아니다 | 2026-10-07 | [mockups/board.html](mockups/board.html) |

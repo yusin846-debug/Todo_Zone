@@ -19,6 +19,8 @@
 | [docs/PLAN.md](docs/PLAN.md) | 마일스톤과 진행 상태 |
 | [docs/PRD.md](docs/PRD.md) | MVP 기능과 수용 기준 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 구성 요소와 데이터 흐름 |
+| [docs/SCREEN-SPEC.md](docs/SCREEN-SPEC.md) | 화면 명세, 디자인 토큰, 문구표 |
+| [docs/mockups/board.html](docs/mockups/board.html) | Board 화면 시안 (브라우저로 열기) |
 | [docs/design-insights-morrow.md](docs/design-insights-morrow.md) | Morrow 디자인 분석 |
 | [docs/design-insights-readymag.md](docs/design-insights-readymag.md) | Readymag 디자인 분석 |
 

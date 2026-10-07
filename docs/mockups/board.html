@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TO-DO ZONE — Board mockup</title>
+<!-- 시안 전용 (step07). 실제 구현은 step11-2에서 frontend/에 다시 만든다. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root {
+    --canvas: #232323;
+    --surface: #2c2c2c;
+    --surface-border: #3a3a3a;
+    --text: #fafafa;
+    --text-muted: #a7a7a7;
+    --ink: #222222;
+    --ink-muted: #555555;
+
+    --card-inbox: #f0f0f0;
+    --card-lavender: #cdd5f6;
+    --card-butter: #eedfa4;
+    --card-sage: #c4d6c0;
+    --card-apricot: #f2c1ae;
+
+    --danger: #ff9b8f;
+
+    --font-display: "Inter Tight", "Pretendard Variable", Pretendard, system-ui, sans-serif;
+    --font-body: "Pretendard Variable", Pretendard, system-ui, sans-serif;
+
+    --radius-card: 10px;
+    --radius-panel: 16px;
+    --radius-pill: 999px;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--canvas); color: var(--text); font-family: var(--font-body); font-size: 15px; line-height: 1.5; word-break: keep-all; }
+
+  /* Header */
+  .top { display: flex; align-items: center; justify-content: space-between; padding: var(--space-5) var(--space-8); }
+  .wordmark { font-family: var(--font-display); font-size: 28px; line-height: 28px; letter-spacing: -1px; font-weight: 500; }
+  .btn { font: 500 14px/1 var(--font-body); padding: 10px 16px; border-radius: var(--radius-pill); border: 1px solid var(--surface-border); background: transparent; color: var(--text); }
+  .btn-primary { background: var(--text); color: var(--ink); border-color: var(--text); }
+
+  /* Project strip */
+  .section-label { font: 500 13px/1 var(--font-display); color: var(--text-muted); letter-spacing: 0; margin: 0 var(--space-8) var(--space-3); }
+  .strip { display: flex; gap: var(--space-3); padding: 0 var(--space-8) var(--space-6); overflow-x: auto; }
+  .proj { flex: 0 0 200px; background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--radius-card); padding: var(--space-3) var(--space-4); }
+  .proj.active { border-color: var(--text); }
+  .proj-name { display: flex; align-items: center; gap: var(--space-2); font-weight: 500; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .proj-meta { font-size: 12px; color: var(--text-muted); margin: var(--space-1) 0 var(--space-2); }
+  .bar { height: 3px; background: var(--surface-border); border-radius: 2px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--text); }
+  .proj-add { flex: 0 0 48px; display: grid; place-items: center; border: 1px dashed var(--surface-border); border-radius: var(--radius-card); color: var(--text-muted); font-size: 20px; }
+
+  /* Board */
+  .board { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4); padding: 0 var(--space-8) var(--space-8); align-items: start; }
+  .col-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-3); }
+  .col-title { font-family: var(--font-display); font-size: 28px; line-height: 28px; letter-spacing: -1px; font-weight: 400; }
+  .col-title span { color: var(--text-muted); font-size: 16px; letter-spacing: 0; margin-left: var(--space-2); }
+  .col-toggle { color: var(--text-muted); font-size: 13px; }
+  .new { display: block; width: 100%; text-align: left; font: 15px/1.5 var(--font-body); color: var(--text-muted); background: transparent; border: 1px dashed var(--surface-border); border-radius: var(--radius-card); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3); }
+  .new.typing { color: var(--text); border-style: solid; border-color: var(--text); }
+  .stack { display: flex; flex-direction: column; gap: var(--space-3); }
+
+  .card { color: var(--ink); border-radius: var(--radius-card); padding: var(--space-4); }
+  .card h3 { margin: 0; font-size: 16px; line-height: 1.5; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-3); font-size: 12px; color: var(--ink-muted); }
+  .overdue { background: var(--ink); color: var(--danger); border-radius: var(--radius-pill); padding: 2px 8px; font-weight: 500; }
+  .card.done h3 { color: var(--ink-muted); }
+  .card.dragging { transform: rotate(2deg); outline: 2px solid var(--text); outline-offset: 2px; }
+  .drop-slot { height: 64px; border-radius: var(--radius-card); border: 2px dashed var(--text-muted); }
+  .c-inbox { background: var(--card-inbox); } .c-lav { background: var(--card-lavender); } .c-but { background: var(--card-butter); } .c-sage { background: var(--card-sage); } .c-apr { background: var(--card-apricot); }
+
+  /* Detail panel */
+  .layout { position: relative; }
+  .panel { position: fixed; top: 0; right: 0; width: 400px; height: 100vh; background: var(--surface); border-left: 1px solid var(--surface-border); padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; }
+  .panel-title { font-family: var(--font-display); font-size: 13px; color: var(--text-muted); font-weight: 500; }
+  .field label { display: block; font: 500 12px/1 var(--font-display); color: var(--text-muted); margin-bottom: var(--space-2); }
+  .input { width: 100%; background: var(--canvas); color: var(--text); border: 1px solid var(--surface-border); border-radius: 8px; padding: 10px 12px; font: 15px/1.5 var(--font-body); }
+  .input.title { font-size: 20px; font-weight: 500; }
+  textarea.input { min-height: 120px; resize: vertical; }
+  textarea.input.title { min-height: 0; resize: none; }
+  .count { text-align: right; font-size: 12px; color: var(--text-muted); margin-top: var(--space-1); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+  .panel-foot { margin-top: auto; display: flex; justify-content: space-between; }
+  .btn-danger { color: var(--danger); border-color: var(--surface-border); }
+  .with-panel .board { margin-right: 400px; }
+
+  @media (max-width: 600px) {
+    .top { padding: var(--space-4); }
+    .wordmark { font-size: 22px; line-height: 22px; }
+    .section-label { margin: 0 var(--space-4) var(--space-2); }
+    .strip { padding: 0 var(--space-4) var(--space-4); margin-right: 0 !important; }
+    .proj { flex-basis: 150px; }
+    .with-panel .board { margin-right: 0; }
+    .board { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--space-4); padding: 0 var(--space-4) var(--space-6); gap: var(--space-3); }
+    .board > section { flex: 0 0 85%; scroll-snap-align: start; }
+    .panel { display: none; }
+  }
+</style>
+</head>
+<body class="with-panel">
+  <header class="top">
+    <div class="wordmark">TO-DO ZONE</div>
+    <button class="btn">Projects</button>
+  </header>
+
+  <div class="section-label">Projects</div>
+  <nav class="strip" style="margin-right:400px">
+    <div class="proj"><div class="proj-name"><span class="dot" style="background:var(--card-inbox)"></span>Inbox</div><div class="proj-meta">1 / 3</div><div class="bar"><i style="width:33%"></i></div></div>
+    <div class="proj active"><div class="proj-name"><span class="dot" style="background:var(--card-lavender)"></span>학교</div><div class="proj-meta">2 / 5</div><div class="bar"><i style="width:40%"></i></div></div>
+    <div class="proj"><div class="proj-name"><span class="dot" style="background:var(--card-butter)"></span>개인</div><div class="proj-meta">0 / 2</div><div class="bar"><i style="width:0%"></i></div></div>
+    <div class="proj"><div class="proj-name"><span class="dot" style="background:var(--card-sage)"></span>운동</div><div class="proj-meta">3 / 4</div><div class="bar"><i style="width:75%"></i></div></div>
+    <div class="proj-add">+</div>
+  </nav>
+
+  <main class="board">
+    <section>
+      <div class="col-head"><div class="col-title">Todo<span>4</span></div></div>
+      <button class="new typing">자료구조 과제 제출▏</button>
+      <div class="stack">
+        <article class="card c-lav"><h3>알고리즘 중간고사 범위 정리하고 기출문제 3년치 풀어보기</h3><div class="card-meta"><span class="overdue">어제</span><span>학교</span></div></article>
+        <article class="card c-but"><h3>장보기 — 우유, 계란, 두부</h3><div class="card-meta"><span>오늘</span><span>개인</span></div></article>
+        <article class="card c-inbox"><h3>포트폴리오 사이트 리디자인 아이디어 메모</h3><div class="card-meta"><span>Inbox</span></div></article>
+        <article class="card c-apr"><h3>동아리 회비 정산 후 단톡방에 공지 올리기, 영수증 사진도 같이 첨부</h3><div class="card-meta"><span class="overdue">10월 3일 (금)</span><span>동아리</span></div></article>
+      </div>
+    </section>
+
+    <section>
+      <div class="col-head"><div class="col-title">Doing<span>2</span></div></div>
+      <button class="new">+ New card</button>
+      <div class="stack">
+        <article class="card c-sage dragging"><h3>주 3회 러닝 5km</h3><div class="card-meta"><span>내일</span><span>운동</span></div></article>
+        <div class="drop-slot"></div>
+        <article class="card c-lav"><h3>캡스톤 디자인 발표 자료 만들기</h3><div class="card-meta"><span>10월 14일 (화)</span><span>학교</span></div></article>
+      </div>
+    </section>
+
+    <section>
+      <div class="col-head"><div class="col-title">Done<span>6</span></div><button class="col-toggle btn" aria-label="Done 열 접기">▴</button></div>
+      <button class="new">+ New card</button>
+      <div class="stack">
+        <article class="card c-lav done"><h3>수강신청 정정</h3><div class="card-meta"><span>어제</span><span>학교</span></div></article>
+        <article class="card c-sage done"><h3>헬스장 등록</h3><div class="card-meta"><span>운동</span></div></article>
+      </div>
+    </section>
+  </main>
+
+  <aside class="panel">
+    <div class="panel-head"><span class="panel-title">Card</span><button class="btn" aria-label="패널 닫기">Close ✕</button></div>
+    <div class="field"><label>Title</label><textarea class="input title" rows="2">알고리즘 중간고사 범위 정리하고 기출문제 3년치 풀어보기</textarea><div class="count">31 / 100</div></div>
+    <div class="field"><label>Memo</label><textarea class="input">3장~7장, 특히 동적 계획법 위주로. 교수님이 그리디 증명 문제 낸다고 하심.</textarea><div class="count">45 / 2,000</div></div>
+    <div class="row2">
+      <div class="field"><label>Due date</label><input class="input" value="10월 6일 (월)"></div>
+      <div class="field"><label>Status</label><input class="input" value="Todo"></div>
+    </div>
+    <div class="field"><label>Project</label><div class="input" style="display:flex;align-items:center;gap:8px"><span class="dot" style="background:var(--card-lavender)"></span>학교</div></div>
+    <div class="panel-foot"><button class="btn btn-danger">Delete</button><button class="btn btn-primary">Save</button></div>
+  </aside>
+</body>
+</html>

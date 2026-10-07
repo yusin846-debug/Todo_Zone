@@ -11,7 +11,7 @@ step 순서대로 진행한다. 마일스톤마다 **완료 기준**을 만족�
 | 04 | PLAN | `docs/PLAN.md` | 모든 step에 산출물과 완료 기준이 있다 | ✅ |
 | 05 | PRD | `docs/PRD.md` | MVP 기능마다 사용자 시나리오와 수용 기준이 있고, 제외 범위가 명시되어 있다 | ✅ |
 | 06 | ARCHITECTURE | `docs/ARCHITECTURE.md` | frontend/backend/DB 구성도와 각 구성 요소의 책임, 데이터 흐름이 있다 | ✅ |
-| 07 | SCREEN-SPEC | `docs/SCREEN-SPEC.md` | 화면마다 레이아웃, 상태(빈 상태/오류/로딩), 데스크톱·모바일 동작, 디자인 토큰이 있다 | ⬜ |
+| 07 | SCREEN-SPEC | `docs/SCREEN-SPEC.md` | 화면마다 레이아웃, 상태(빈 상태/오류/로딩), 데스크톱·모바일 동작, 디자인 토큰이 있다 | ✅ |
 | 08 | DATA-MODEL | `docs/DATA-MODEL.md` | Card/Project 테이블, 필드, 제약(이름 중복 금지, Inbox 보호, 순서)이 있다 | ⬜ |
 | 09 | API-SPEC | `docs/API-SPEC.md` | 모든 기능의 엔드포인트, 요청·응답 예시, 오류 코드가 있다 | ⬜ |
 | 10 | TEST-PLAN | `docs/TEST-PLAN.md` | PRD의 수용 기준마다 대응하는 테스트가 있다 | ⬜ |
