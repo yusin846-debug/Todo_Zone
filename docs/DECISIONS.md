@@ -89,7 +89,9 @@
 | D-082 | 운영체제의 **"동작 줄이기"** 설정을 켠 사용자에게는 애니메이션을 끈다 | 2026-10-07 | |
 | D-083 | Project 위에 **Area** 층을 둔다: Area → Project → Card. Project는 Area 0개 또는 1개에 속하고, Inbox는 Area 밖이다 | 2026-10-07 | [ADR-0008](adr/0008-area-owns-color.md) |
 | D-084 | 기본 Area는 **Business / Career / Ventures / Life** 4개다. 사용자가 추가·이름 변경·삭제할 수 있다(최대 8개). Area를 지우면 그 Project는 Area 없음이 된다 | 2026-10-07 | [GLOSSARY](../GLOSSARY.md) |
-| D-085 | Project 태그 줄을 **Area별로 묶는다**(UI A). Area 라벨을 누르면 그 Area 전체로, Project 태그를 누르면 그 Project로 필터한다. 필터는 한 번에 하나 (D-033 확장) | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |
+| D-085 | Project 태그 줄을 **Area별로 묶는다**(UI A). Area 라벨을 누르면 그 Area 전체로, Project 태그를 누르면 그 Project로 필터한다. 필터는 한 번에 하나 (D-033 확장) → 표현은 **D-089(벤토)로 개정**, 필터 규칙은 유지 | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |
 | D-086 | **카드 색은 Area가 정한다**: Business gold, Career mist, Ventures salmon, Life sage. Area 없는 Project와 Inbox는 크림. Project는 아이콘으로 구분하고 Project 색 고르기는 없앤다 (D-042 대체) | 2026-10-07 | [ADR-0008](adr/0008-area-owns-color.md) |
 | D-087 | Area 필터가 켜진 상태의 새 Card는 **Inbox**로 간다 | 2026-10-07 | D-018과 일관 |
 | D-088 | Quarterly Review의 막대는 **Area별**이고, 그 안에 Project별 수를 보인다 | 2026-10-07 | [SCREEN-SPEC S5](SCREEN-SPEC.md) |
+| D-089 | Project 태그 줄을 **Area 벤토 타일**로 바꾼다(시안 B). 타일은 **글래스모피즘**(반투명 Area 색 + 뒤 흐림 + 빛 테두리, 뒤에 Area 색 빛 번짐)이고 그림자는 쓰지 않는다. 타일에 열린 카드 수(큰 숫자)·진행 중·지난 마감·Project 칩. 타일 = Area 필터, 칩 = Project 필터. Hero 타이포와 요약 문장은 그대로 둔다(사용자 요청) | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |
+| D-090 | 같은 Area 색 카드가 연달아 오면 두 번째를 밝게(Area 색 60% + 크림) 해서 단색 벽을 피한다 | 2026-10-07 | [SCREEN-SPEC S1](SCREEN-SPEC.md) |

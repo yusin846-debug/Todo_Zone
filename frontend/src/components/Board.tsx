@@ -77,6 +77,12 @@ export function Board({ cards, areas, projects, filter, today, onAdd, onOpenCard
   const visible = (status: Status) =>
     columnCards(cards, status, null).filter((c) => matchesFilter(c, filter, projects));
   const colorFor = (projectId: string) => colorOf(projectOf(projectId), areas);
+  // 같은 Area 색 카드가 연달아 오면 번갈아 밝게 해서 단색 벽을 피한다 (D-089)
+  const lighten = (list: Card[], i: number): boolean => {
+    if (i === 0 || list[i]!.status === 'done') return false;
+    const same = colorFor(list[i - 1]!.projectId) === colorFor(list[i]!.projectId);
+    return same && !lighten(list, i - 1);
+  };
   const statusOf = (id: string): Status | null => {
     if (id.startsWith('column:')) return id.slice('column:'.length) as Status;
     return cards.find((c) => c.id === id)?.status ?? null;
@@ -197,12 +203,13 @@ export function Board({ cards, areas, projects, filter, today, onAdd, onOpenCard
                   strategy={verticalListSortingStrategy}
                 >
                   <div className={styles.stack}>
-                    {list.map((card) => (
+                    {list.map((card, i) => (
                       <SortableCard
                         key={card.id}
                         card={card}
                         project={projectOf(card.projectId)}
                         color={colorFor(card.projectId)}
+                        alt={lighten(list, i)}
                         tier={cardTier(card, card.id === focusId)}
                         today={today}
                         onOpen={() => onOpenCard(card.id)}

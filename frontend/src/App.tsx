@@ -6,7 +6,7 @@ import { CardPanel } from './components/CardPanel.tsx';
 import { ProjectsPanel } from './components/ProjectsPanel.tsx';
 import { ReviewPage } from './components/ReviewPage.tsx';
 import { BoardSkeleton, ServerDown, Toast } from './components/Status.tsx';
-import { Header, Hero, ProjectTags } from './components/Top.tsx';
+import { AreaBento, Header, Hero } from './components/Top.tsx';
 import { toDateKey } from './lib/dates.ts';
 import type { Filter } from './lib/areas.ts';
 import { settle } from './lib/motion.ts';
@@ -101,7 +101,8 @@ function BoardPage({
       {/* 패널이 열리면 데스크톱에서 Board가 패널 폭만큼 좁아져 계속 보인다 (D-047) */}
       <div className={styles.page} data-panel-open={panel !== null}>
         <Hero cards={visible} today={today} hour={now.getHours()} />
-        <ProjectTags
+        <AreaBento
+          today={today}
           areas={data.areas}
           projects={data.projects}
           cards={visible}

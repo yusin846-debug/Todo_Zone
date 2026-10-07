@@ -1,8 +1,10 @@
 import type { Area, Card, Project } from '@todo-zone/shared';
-import { colorOf, groupProjects, type Filter } from '../lib/areas.ts';
+import { motion } from 'motion/react';
+import { groupProjects, type Filter } from '../lib/areas.ts';
 import { progressOf, summarize } from '../lib/board.ts';
 import { eyebrowDate, greeting } from '../lib/dates.ts';
 import { Plus } from 'lucide-react';
+import { droplet, drip, dripParent, press } from '../lib/motion.ts';
 import type { View } from '../lib/useView.ts';
 import { ProjectIconView } from './icons.tsx';
 import { Segmented } from './Segmented.tsx';
@@ -66,13 +68,15 @@ export function Hero({ cards, today, hour }: { cards: Card[]; today: string; hou
 }
 
 /**
- * Project 태그 줄, Area별로 묶음 (F9, D-085 UI A).
- * Area 라벨을 누르면 그 Area 전체, 태그를 누르면 그 Project로 필터한다. 필터는 한 번에 하나.
+ * Area 벤토 (D-089, SCREEN-SPEC S1). Area마다 유리 타일 하나:
+ * 큰 숫자(열린 카드), 진행 중·지난 마감, 그 Area의 Project 칩.
+ * 타일을 누르면 Area 필터, 칩을 누르면 Project 필터. 필터는 한 번에 하나 (D-033, D-085).
  */
-export function ProjectTags({
+export function AreaBento({
   areas,
   projects,
   cards,
+  today,
   filter,
   onFilter,
   onManage,
@@ -80,75 +84,96 @@ export function ProjectTags({
   areas: Area[];
   projects: Project[];
   cards: Card[];
+  today: string;
   filter: Filter;
   onFilter: (filter: Filter) => void;
   /** + New project: Projects 관리 패널(S3)을 연다 */
   onManage: () => void;
 }) {
-  const groups = groupProjects(areas, projects).filter((g) => g.projects.length > 0);
+  const groups = groupProjects(areas, projects);
   const isOn = (kind: 'area' | 'project', id: string) => filter?.kind === kind && filter.id === id;
-  // 필터가 켜졌을 때 물러나는 태그: Area 필터면 그 Area 밖, Project 필터면 그 Project 밖
-  const dimmed = (p: Project) =>
-    filter !== null && !(filter.kind === 'area' ? p.areaId === filter.id : p.id === filter.id);
 
   return (
-    <nav className={styles.tags} aria-label="Projects">
-      {groups.map((g) => (
-        <div key={g.area?.id ?? 'none'} className={styles.group}>
-          {g.area ? (
-            <button
-              type="button"
-              className={styles.areaLabel}
-              aria-pressed={isOn('area', g.area.id)}
-              aria-label={`${g.area.name} Area 전체`}
-              data-dimmed={
-                filter !== null &&
-                !isOn('area', g.area.id) &&
-                !g.projects.some((p) => isOn('project', p.id))
-              }
-              onClick={() =>
-                onFilter(isOn('area', g.area!.id) ? null : { kind: 'area', id: g.area!.id })
-              }
+    <nav className={styles.bentoWrap} aria-label="Projects">
+      {/* 유리 뒤에서 비치는 Area 색 빛 (글래스모피즘은 뒤에 색이 있어야 보인다) */}
+      <div className={styles.glow} aria-hidden="true">
+        {areas.map((a) => (
+          <span key={a.id} data-color={a.color} />
+        ))}
+      </div>
+      <motion.div
+        className={styles.bento}
+        variants={dripParent(0.05)}
+        initial="hidden"
+        animate="shown"
+      >
+        {groups.map((g) => {
+          const ids = new Set(g.projects.map((p) => p.id));
+          const mine = cards.filter((c) => ids.has(c.projectId));
+          const open = mine.filter((c) => c.status !== 'done');
+          const doing = mine.filter((c) => c.status === 'doing').length;
+          const done = mine.filter((c) => c.status === 'done').length;
+          const overdue = open.filter((c) => c.dueDate !== null && c.dueDate < today).length;
+          const areaOn = g.area !== null && isOn('area', g.area.id);
+          const projectOn = g.projects.some((p) => isOn('project', p.id));
+          const dimmed = filter !== null && !areaOn && !projectOn;
+          return (
+            <motion.div
+              key={g.area?.id ?? 'unsorted'}
+              className={styles.tile}
+              data-color={g.area?.color ?? 'inbox'}
+              data-kind={g.area ? 'area' : 'unsorted'}
+              data-on={areaOn}
+              data-dimmed={dimmed}
+              variants={drip}
+              layout
+              transition={droplet}
             >
-              <span className={styles.areaDot} data-color={g.area.color} />
-              {g.area.name}
-            </button>
-          ) : (
-            <span className={styles.areaLabel} data-static>
-              <span className={styles.areaDot} data-color="inbox" />
-              Unsorted
-            </span>
-          )}
-          <div className={styles.groupTags}>
-            {g.projects.map((p) => {
-              const { done, total, ratio } = progressOf(cards, p.id);
-              const selected = isOn('project', p.id);
-              return (
-                <button
-                  key={p.id}
+              {g.area && (
+                // 타일 전체를 덮는 필터 버튼. Project 칩은 이 위에 놓인다
+                <motion.button
                   type="button"
-                  className={styles.tag}
-                  data-color={colorOf(p, areas)}
-                  data-dimmed={dimmed(p)}
-                  aria-pressed={selected}
-                  onClick={() => onFilter(selected ? null : { kind: 'project', id: p.id })}
-                >
-                  <span className={styles.tagName}>
-                    <ProjectIconView icon={p.icon} size={18} />
-                    {p.name}
-                  </span>
-                  <span className={styles.tagCount}>
-                    {done} / {total}
-                  </span>
-                  <span className={styles.bar} aria-hidden="true">
-                    <i style={{ width: `${Math.round(ratio * 100)}%` }} />
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+                  className={styles.tileHit}
+                  aria-pressed={areaOn}
+                  aria-label={`${g.area.name} Area 전체`}
+                  onClick={() => onFilter(areaOn ? null : { kind: 'area', id: g.area!.id })}
+                  whileTap={{ scale: 0.98 }}
+                />
+              )}
+              <div className={styles.tileHead}>
+                <span className={styles.tileName}>{g.area?.name ?? 'Unsorted'}</span>
+                <span className={styles.tileDone}>{done} done</span>
+              </div>
+              <div className={styles.tileBig}>
+                {open.length}
+                <small>open{doing > 0 && ` · ${doing} doing`}</small>
+              </div>
+              {overdue > 0 && <div className={styles.tileOverdue}>지난 마감 {overdue}장</div>}
+              <div className={styles.chips}>
+                {g.projects.map((p) => {
+                  const selected = isOn('project', p.id);
+                  const { done: pd, total } = progressOf(cards, p.id);
+                  return (
+                    <motion.button
+                      key={p.id}
+                      type="button"
+                      className={styles.chip}
+                      aria-pressed={selected}
+                      aria-label={`${p.name} ${pd}/${total}`}
+                      title={`${p.name} · ${pd} / ${total}`}
+                      onClick={() => onFilter(selected ? null : { kind: 'project', id: p.id })}
+                      {...press}
+                    >
+                      <ProjectIconView icon={p.icon} size={14} />
+                      <span>{p.name}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          );
+        })}
+      </motion.div>
       <button type="button" className={styles.tagAdd} onClick={onManage}>
         <Plus size={15} aria-hidden="true" /> New project
       </button>

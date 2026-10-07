@@ -86,7 +86,7 @@ export function CardView({ card, project, color, tier, today }: Props) {
 }
 
 /** 드래그할 수 있는 Card (dnd-kit). 집힌 동안 제자리에는 같은 높이의 면만 남는다 (D-061). */
-export function SortableCard(props: Props & { onOpen: () => void }) {
+export function SortableCard(props: Props & { onOpen: () => void; alt?: boolean }) {
   const { card, project, tier, onOpen } = props;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -105,6 +105,7 @@ export function SortableCard(props: Props & { onOpen: () => void }) {
       className={styles.card}
       data-tier={tier}
       data-color={props.color}
+      data-alt={props.alt ?? false}
       data-placeholder={isDragging}
       aria-label={`${project.name}: ${card.title}`}
       {...attributes}

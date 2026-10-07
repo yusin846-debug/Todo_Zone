@@ -6,6 +6,11 @@
   box-sizing: border-box;
 }
 
+html {
+  /* 흐림 빛(벤토 glow)이 옆으로 넘쳐 가로 스크롤이 생기지 않게 */
+  overflow-x: clip;
+}
+
 body {
   margin: 0;
   background: var(--canvas);

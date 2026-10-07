@@ -150,16 +150,22 @@
   - "진행 중인 카드 **n장**, 오늘 마감 **n장**" + Overdue가 있으면 "지난 마감 **n장**이 기다리고 있어요."
   - 모두 0이면 S-0 문구.
 
-**Project 태그 (F9) — Area별 묶음 (D-085, UI A)**
+**Area 벤토 (F9, D-089) — 글래스모피즘**
 ```
-● BUSINESS     ● CAREER              ● VENTURES                ● LIFE         ● UNSORTED
-[🍙 가게 운영]  [💼 커리어][🎓 학습]   [🌱 사이드 앱][⌨ TO-DO ZONE] [❤ 생활]      [📥 Inbox]   (+ New project)
+┌ Business ── 2 done ┐┌ Career ─── 4 done ┐┌ Ventures ─ 2 done ┐┌ Life ──── 0 done ┐┌ Unsorted ─ 0 done ┐
+│ 0  open            ││ 1  open · 1 doing ││ 3  open · 1 doing ││ 2  open · 2 doing ││ 0  open            │
+│ (🍙 가게 운영)      ││ (💼 커리어)(🎓 학습)││ (🌱 사이드 앱)(⌨ …) ││ (❤ 생활)           ││ (📥 Inbox)         │
+└────────────────────┘└───────────────────┘└───────────────────┘└───────────────────┘└────────────────────┘
+(+ New project)
 ```
-- 묶음마다 위에 **Area 라벨**(색 점 + eyebrow 대문자). Area 순서는 만든 순서, 그 안의 Project도 만든 순서. Area 없는 Project와 Inbox는 마지막 `UNSORTED` 묶음(Inbox가 맨 뒤).
-- 태그: **Area 색 면**(D-086, Area 없으면 크림), 모서리 22px, 최소 폭 112px. 내용: 아이콘 + 이름(`tag`), "Done 수 / 전체 수"(`meta`), Progress 바(3px).
-- **Area 라벨을 누르면 그 Area 전체**, 태그를 누르면 그 Project로 필터. 필터는 한 번에 하나, 다시 누르면 해제 (D-033, D-085). 필터 밖의 태그와 라벨은 45% 불투명도로 물러난다.
+- Hero(두 줄 인사말 + 오른쪽 요약 문장) 아래에 둔다. Hero 타이포는 바꾸지 않는다.
+- **유리 타일:** Area 색 30%→8% 반투명 그라데이션 + `backdrop-filter: blur(22px)` + Area 색 40% 1px 테두리 + 위쪽 가장자리 빛 반사(1px). 그림자 없음 (D-061).
+- **뒤의 빛:** 타일 뒤에 Area 색 빛 번짐(blur 70px, 30%). 유리 흐림이 보이게 한다. 빛을 잘라내지 않는다(잘린 가장자리는 가로줄처럼 보인다). 가로 넘침은 `html { overflow-x: clip }`으로 막는다.
+- **내용:** Area 이름(`tag` 18px) · 이번 분기 done 수 / 큰 숫자 = 열린 카드(Todo+Doing, 56px 800) + `open · n doing` / 지난 마감이 있으면 어두운 배지 / Project 칩(아이콘 + 이름).
+- **필터:** 타일 빈 곳을 누르면 그 Area, 칩을 누르면 그 Project (한 번에 하나, D-033). 켜진 타일은 Area 색 테두리 + 진한 유리, 나머지 타일은 45%로 물러난다. 켜진 칩은 크림 면.
+- **순서:** Area 만든 순서, 마지막에 Unsorted(Area 없는 Project + Inbox, 무채색 유리). 타일은 drip으로 차례로 나타난다.
+- **모바일:** 타일 폭 78%, 가로로 넘긴다.
 - Area 필터 중 `+ New card`는 Inbox로 만든다 (D-087).
-- 마지막에 `+ New project` (테두리 `--line` pill) → S3. 줄이 넘치면 묶음 단위로 다음 줄로 감싼다. 모바일은 한 줄 가로 스크롤.
 
 **Status 열**
 - 열 머리: eyebrow `01 / TO DO`·`02 / IN PROGRESS`·`03 / FINISHED`, 그 아래 `column` 제목 + 개수. 오른쪽에 `+ New card` 버튼(`--surface` pill). Done 열은 `+ New card` 옆에 접기 버튼(▴/▾).
@@ -179,7 +185,7 @@
 | **Done** | Status = Done (단계 무관) | `--surface` 면 + Project 색 원 안 ✓ + `--paper-muted` 제목, 취소선 |
 
 - 메타의 날짜 배지: 상태 아이콘 + 한글 날짜, `--ink` 8% 바탕 pill. Overdue면 `--ink` 바탕 + `--danger` 글자.
-- Card 배경은 Project 색. Card 전체가 버튼이며, `aria-label`에 Project 이름을 포함한다(S단계는 이름이 화면에 안 보이므로).
+- Card 배경은 Area 색(D-086). 같은 색이 연달아 오면 두 번째는 밝게(D-090). Card 전체가 버튼이며, `aria-label`에 Project 이름을 포함한다(S단계는 이름이 화면에 안 보이므로).
 
 **새 Card 입력 (F2)**
 - `+ New card`를 누르면 그 열 맨 위에 입력칸이 열린다(`--surface` 면, `--paper` 1px 테두리, 실선).

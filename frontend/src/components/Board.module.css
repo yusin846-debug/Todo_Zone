@@ -150,6 +150,20 @@
   background: var(--c-salmon);
 }
 
+/* 같은 색이 연달아 오면 두 번째는 밝게 (D-089). Focus는 열 맨 위라 해당 없음 */
+.card[data-alt='true'][data-color='mist'] {
+  background: color-mix(in srgb, var(--c-mist) 60%, var(--paper));
+}
+.card[data-alt='true'][data-color='gold'] {
+  background: color-mix(in srgb, var(--c-gold) 60%, var(--paper));
+}
+.card[data-alt='true'][data-color='sage'] {
+  background: color-mix(in srgb, var(--c-sage) 60%, var(--paper));
+}
+.card[data-alt='true'][data-color='salmon'] {
+  background: color-mix(in srgb, var(--c-salmon) 60%, var(--paper));
+}
+
 .title {
   margin: 6px 0 0;
   font-size: 17px;
