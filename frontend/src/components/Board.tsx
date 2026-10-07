@@ -46,6 +46,7 @@ type Props = {
   filter: string | null;
   today: string;
   onAdd: (title: string, status: Status) => void;
+  onOpenCard: (cardId: string) => void;
   /** 드래그 흐름: 시작 → (미리보기 이동 …) → 놓기(서버 저장) 또는 취소(되돌리기) */
   drag: {
     start: () => void;
@@ -55,7 +56,7 @@ type Props = {
   };
 };
 
-export function Board({ cards, projects, filter, today, onAdd, drag }: Props) {
+export function Board({ cards, projects, filter, today, onAdd, onOpenCard, drag }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [composing, setComposing] = useState<Status | null>(null);
   const [doneCollapsed, setDoneCollapsed] = useState(readCollapsed);
@@ -63,7 +64,11 @@ export function Board({ cards, projects, filter, today, onAdd, drag }: Props) {
   // 마우스와 키보드만. 터치(모바일)는 드래그 대신 상세 패널의 Status 변경을 쓴다 (D-021).
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+      // Enter는 상세 패널 열기에 쓰므로 집기·놓기는 Space만
+      keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space'] },
+    }),
   );
 
   const projectOf = (id: string) => projects.find((p) => p.id === id)!;
@@ -155,9 +160,11 @@ export function Board({ cards, projects, filter, today, onAdd, drag }: Props) {
                   <button
                     type="button"
                     className={styles.pillBtn}
+                    aria-label="New card"
                     onClick={() => setComposing(status)}
                   >
-                    <Plus size={14} aria-hidden="true" /> New card
+                    <Plus size={14} aria-hidden="true" />
+                    <span className={styles.btnLabel}>New card</span>
                   </button>
                   {status === 'done' && (
                     <button
@@ -193,6 +200,7 @@ export function Board({ cards, projects, filter, today, onAdd, drag }: Props) {
                         project={projectOf(card.projectId)}
                         tier={cardTier(card, card.id === focusId)}
                         today={today}
+                        onOpen={() => onOpenCard(card.id)}
                       />
                     ))}
                     {list.length === 0 && (

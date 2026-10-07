@@ -86,8 +86,8 @@ export function CardView({ card, project, tier, today }: Props) {
 }
 
 /** 드래그할 수 있는 Card (dnd-kit). 집힌 동안 제자리에는 같은 높이의 면만 남는다 (D-061). */
-export function SortableCard(props: Props) {
-  const { card, project, tier } = props;
+export function SortableCard(props: Props & { onOpen: () => void }) {
+  const { card, project, tier, onOpen } = props;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { status: card.status },
@@ -109,6 +109,12 @@ export function SortableCard(props: Props) {
       aria-label={`${project.name}: ${card.title}`}
       {...attributes}
       {...listeners}
+      // 클릭 또는 Enter로 상세 패널을 연다 (S2). 드래그 집기는 Space만 (Board의 KeyboardSensor).
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onOpen();
+        else listeners?.onKeyDown?.(e);
+      }}
     >
       <CardView {...props} />
     </article>

@@ -26,7 +26,8 @@ PRD의 수용 기준마다 대응하는 테스트를 둔다. 테스트 도구는
 | F2 | 한글 조합 중 Enter 무시 | `App.test` isComposing | 화면 |
 | F2 | 100자 초과 거부 (이모지 포함 코드 포인트) | `cards.api.test` 400 | API |
 | F2 | 필터 Project 또는 Inbox로 생성 | `App.test` · `cards.api.test` projectId 생략 | 화면·API |
-| F3 | 제목·메모·Due date·Project 수정, 메모 2,000자 | `cards.api.test` PATCH | API |
+| F3 | 제목·메모·Due date·Project 수정, 메모 2,000자 | `cards.api.test` PATCH · `Panels.test` | API·화면 |
+| F3 | 빈 제목이면 Save 비활성 + V1, 저장 안 하고 닫으면 D2 | `Panels.test` | 화면 |
 | F3 | 존재하지 않는 날짜(2026-02-30) 거부, null로 지우기 | `cards.api.test` PATCH | API |
 | F4 | 열 사이·열 안 이동, 순번 빈틈없음 | `board.test` moveCard · `cards.api.test` move | 로직·API |
 | F4 | 필터 중 이동은 보이는 Card 바로 뒤 | `board.test` · `cards.api.test` move | 로직·API |
@@ -34,11 +35,13 @@ PRD의 수용 기준마다 대응하는 테스트를 둔다. 테스트 도구는
 | F5 | 완료 = Status Done, Done 접기 | `App.test` 접기 | 화면 |
 | F6 | 오늘/내일/어제, "10월 9일 (금)", Done은 overdue 아님 | `dates.test` dueLabel | 로직 |
 | F7 | 삭제 후 순번 당김, 없는 id는 404 | `cards.api.test` DELETE | API |
+| F7 | 확인 창 D1, 기본 포커스 Cancel | `Panels.test` | 화면 |
 | F8 | 생성(4색 순환, 기본 아이콘), 이름 1~30자 | `projects.api.test` POST | API |
 | F8 | 이름 중복(공백·대소문자 무시) 409 | `projects.api.test` | API |
 | F8 | 20개 제한 409 | `projects.api.test` | API |
 | F8 | Inbox 수정·삭제 400 | `projects.api.test` | API |
 | F8 | 삭제 시 Card는 Inbox로, 순서 유지 | `projects.api.test` DELETE | API |
+| F8 | 만들기·중복 문구(V2)·Inbox 잠금·아이콘 변경·D3 카드 수 | `Panels.test` | 화면 |
 | F9 | 필터 켜기·다시 눌러 해제, Progress | `App.test` · `board.test` progressOf | 화면·로직 |
 | F10 | completedAt 기록·삭제, 이번 분기만 Board에 | `board.test` · `quarter.test` · `cards.api.test` · `App.test` | 로직·API·화면 |
 | F10 | Done ⇔ completed_at (CHECK) | `constraints.test` | API |
@@ -56,5 +59,4 @@ PRD의 수용 기준마다 대응하는 테스트를 둔다. 테스트 도구는
 
 ## 4. 이번 범위 밖
 
-- 상세 패널·Projects 관리 화면 테스트: 11-5에서 화면을 만들 때 추가한다.
 - 서버 꺼짐·저장 실패 화면(E4, T1): 11-6에서 추가한다.

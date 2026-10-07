@@ -1,0 +1,10 @@
+.page {
+  transition: padding-right var(--motion);
+}
+
+/* 데스크톱: 패널(400px)이 열리면 Board가 그만큼 좁아진다 (D-047). 모바일은 시트가 화면을 덮는다. */
+@media (min-width: 601px) {
+  .page[data-panel-open='true'] {
+    padding-right: 400px;
+  }
+}

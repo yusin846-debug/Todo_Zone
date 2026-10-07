@@ -1,6 +1,16 @@
 import { useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { addCard, moveCard, type Card, type Project, type Status } from '@todo-zone/shared';
+import {
+  addCard,
+  moveCard,
+  removeCard,
+  type Card,
+  type CreateProjectInput,
+  type Project,
+  type Status,
+  type UpdateCardInput,
+  type UpdateProjectInput,
+} from '@todo-zone/shared';
 import { request } from './client.ts';
 
 // Board 데이터의 서버 연결 (step11-4, D-038).
@@ -63,7 +73,66 @@ export function useBoardActions(onError: (message: string) => void) {
     },
   });
 
+  // 상세 패널의 Save (F3, F4 모바일): 내용 수정 후, Status가 바뀌었으면 새 열 맨 위로 옮긴다.
+  const save = useMutation({
+    scope: SCOPE,
+    mutationFn: async (v: {
+      id: string;
+      patch: UpdateCardInput;
+      status: Status | null;
+      prev: BoardData;
+    }) => {
+      const fresh: Card[] = [];
+      if (Object.keys(v.patch).length > 0)
+        fresh.push(await request<Card>('PATCH', `/api/cards/${v.id}`, v.patch));
+      if (v.status !== null)
+        fresh.push(
+          ...(
+            await request<{ cards: Card[] }>('POST', `/api/cards/${v.id}/move`, {
+              status: v.status,
+              afterId: null,
+            })
+          ).cards,
+        );
+      return fresh;
+    },
+    onSuccess: (fresh) => mergeCards(fresh),
+    onError: (err, v) => {
+      write(v.prev);
+      onError(err.message);
+    },
+  });
+
+  // Card 삭제 (F7). 확인은 화면이 먼저 받는다.
+  const remove = useMutation({
+    scope: SCOPE,
+    mutationFn: (v: { id: string; prev: BoardData }) =>
+      request<void>('DELETE', `/api/cards/${v.id}`),
+    onError: (err, v) => {
+      write(v.prev);
+      onError(err.message);
+    },
+  });
+
   return {
+    /** patch는 바뀐 필드만, status는 바뀐 경우에만 넘긴다. */
+    saveCard: (id: string, patch: UpdateCardInput, status: Status | null) => {
+      const prev = read();
+      if (!prev) return;
+      const nowIso = new Date().toISOString();
+      setCards((cards) => {
+        const patched = cards.map((c) => (c.id === id ? { ...c, ...patch } : c));
+        return status === null ? patched : moveCard(patched, id, status, null, nowIso);
+      });
+      save.mutate({ id, patch, status, prev });
+    },
+    deleteCard: (id: string) => {
+      const prev = read();
+      if (!prev) return;
+      setCards((cards) => removeCard(cards, id));
+      remove.mutate({ id, prev });
+    },
+
     createCard: (title: string, status: Status, projectId: string) =>
       create.mutate({ id: crypto.randomUUID(), title, status, projectId }),
 
@@ -93,6 +162,34 @@ export function useBoardActions(onError: (message: string) => void) {
     cancelDrag: () => {
       if (snapshot.current) write(snapshot.current);
       snapshot.current = undefined;
+    },
+  };
+}
+
+/**
+ * Project 관리 (F8). 규칙 검사(이름 중복, 20개, Inbox)는 서버가 하므로 낙관적으로 바꾸지 않고
+ * 응답을 기다린다. 실패하면 ApiRequestError를 던져서 화면이 한글 문구를 그 자리에 보여 준다.
+ */
+export function useProjectActions() {
+  const qc = useQueryClient();
+  const refresh = () => qc.invalidateQueries({ queryKey: BOARD_KEY });
+
+  return {
+    createProject: async (input: CreateProjectInput) => {
+      const created = await request<Project>('POST', '/api/projects', input);
+      await refresh();
+      return created;
+    },
+    updateProject: async (id: string, input: UpdateProjectInput) => {
+      const updated = await request<Project>('PATCH', `/api/projects/${id}`, input);
+      await refresh();
+      return updated;
+    },
+    /** Card는 Inbox로 옮겨진다 (D-016). */
+    deleteProject: async (id: string) => {
+      const result = await request<{ movedCards: number }>('DELETE', `/api/projects/${id}`);
+      await refresh();
+      return result;
     },
   };
 }

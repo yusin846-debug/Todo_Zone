@@ -114,6 +114,24 @@
   background: var(--c-salmon);
 }
 
+.tagAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: center;
+  padding: 12px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--paper);
+  font: 600 14px/1 var(--font-body);
+  cursor: pointer;
+}
+
+.tagAdd:hover {
+  background: var(--surface);
+}
+
 .tag[data-dimmed='true'] {
   opacity: 0.45;
 }

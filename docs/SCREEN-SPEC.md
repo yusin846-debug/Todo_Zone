@@ -144,6 +144,7 @@
 **Status 열**
 - 열 머리: eyebrow `01 / TO DO`·`02 / IN PROGRESS`·`03 / FINISHED`, 그 아래 `column` 제목 + 개수. 오른쪽에 `+ New card` 버튼(`--surface` pill). Done 열은 `+ New card` 옆에 접기 버튼(▴/▾).
 - 머리 아래 1px `--line`. 열 폭 비율 1 : 1.35 : 0.85. Card 간격 12px.
+- 열이 300px보다 좁으면(패널이 열려 Board가 줄었을 때 등) `+ New card`는 `+` 아이콘만 남긴다. 버튼과 제목이 두 줄로 접히지 않게 한다 (D-061).
 - Done 열 접힘: 머리만 남고 Card가 숨는다. 상태는 localStorage에 기억 (D-045).
 - **Done 열에는 이번 분기에 끝낸 Card만** 보인다. 열 개수와 Project Progress도 Board에 보이는 Card 기준이다 (D-072, D-075). 지난 분기 Card는 Quarterly Review(11-7)에서 본다.
 
@@ -199,11 +200,11 @@
 - 데스크톱: 오른쪽 고정 폭 400px, `--surface`, 왼쪽 1px `--line`. Board는 그만큼 좁아져서 계속 보인다 (D-047). 모바일: 전체 화면 시트.
 - 필드 라벨은 `eyebrow` 스타일. 입력칸은 `--canvas` 바탕, `--line` 테두리, 모서리 12px.
 - Title: 여러 줄 자동 높이, "n / 100". Memo: 최소 120px, "n / 2,000". Due date: 날짜 선택 + `✕`로 지우기. Status: Todo/Doing/Done(바꾸면 그 열 맨 위로). Project: 아이콘 + 이름 목록.
-- 버튼: `Save`(`--paper` pill, 제목이 비면 비활성 + V1), `Delete`(`--danger` 글자, D1), `Close ✕`(변경이 있으면 D2).
+- 버튼: `Save`(`--paper` pill, 제목이 비었거나 바뀐 내용이 없으면 비활성. 제목이 비면 V1), `Delete`(`--danger` 글자, D1), `Close ✕`(변경이 있으면 D2).
 
 ### S3. Projects 관리 — F8
 
-- `+ New project` 또는 Header 영역에서 연다. S2와 같은 자리(400px 패널 / 모바일 시트).
+- Project 태그 줄 끝의 `+ New project`로 연다. 새 이름 입력칸에 포커스가 간다. S2와 같은 자리(400px 패널 / 모바일 시트).
 
 ```
 ┌ PROJECTS ───────────────── (Close ✕) ┐

@@ -1,6 +1,7 @@
 import type { Card, Project } from '@todo-zone/shared';
 import { progressOf, summarize } from '../lib/board.ts';
 import { eyebrowDate, greeting } from '../lib/dates.ts';
+import { Plus } from 'lucide-react';
 import { ProjectIconView } from './icons.tsx';
 import styles from './Top.module.css';
 
@@ -54,11 +55,14 @@ export function ProjectTags({
   cards,
   filter,
   onFilter,
+  onManage,
 }: {
   projects: Project[];
   cards: Card[];
   filter: string | null;
   onFilter: (projectId: string | null) => void;
+  /** + New project: Projects 관리 패널(S3)을 연다 */
+  onManage: () => void;
 }) {
   const ordered = [...projects].sort(
     (a, b) => Number(b.isInbox) - Number(a.isInbox) || a.createdAt.localeCompare(b.createdAt),
@@ -92,6 +96,9 @@ export function ProjectTags({
           </button>
         );
       })}
+      <button type="button" className={styles.tagAdd} onClick={onManage}>
+        <Plus size={15} aria-hidden="true" /> New project
+      </button>
     </nav>
   );
 }
