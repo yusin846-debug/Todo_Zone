@@ -16,6 +16,9 @@
 | [GLOSSARY.md](GLOSSARY.md) | 용어집 |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | 확정된 결정 목록 |
 | [docs/adr/](docs/adr/) | 주요 결정의 배경 기록 |
+| [docs/PLAN.md](docs/PLAN.md) | 마일스톤과 진행 상태 |
+| [docs/PRD.md](docs/PRD.md) | MVP 기능과 수용 기준 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 구성 요소와 데이터 흐름 |
 | [docs/design-insights-morrow.md](docs/design-insights-morrow.md) | Morrow 디자인 분석 |
 | [docs/design-insights-readymag.md](docs/design-insights-readymag.md) | Readymag 디자인 분석 |
 

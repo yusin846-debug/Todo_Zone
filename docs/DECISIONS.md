@@ -31,7 +31,7 @@
 | D-024 | 프론트엔드는 **React + Vite**, 드래그는 **dnd-kit**을 쓴다 | 2026-10-07 | [ADR-0004](adr/0004-typescript-react-express-sqlite.md) |
 | D-025 | 백엔드는 **Node.js + Express**다 | 2026-10-07 | [ADR-0004](adr/0004-typescript-react-express-sqlite.md) |
 | D-026 | DB는 **SQLite**(파일 하나)다 | 2026-10-07 | [ADR-0004](adr/0004-typescript-react-express-sqlite.md) |
-| D-027 | 한 저장소 안에 **`frontend/`와 `backend/`**를 나눈다 | 2026-10-07 | |
+| D-027 | 한 저장소 안에 **`frontend/`와 `backend/`**를 나눈다 → **D-037로 개정** (`shared/` 추가) | 2026-10-07 | |
 | D-028 | PLAN은 **step 단위 마일스톤**과 마일스톤별 완료 기준으로 쓴다 | 2026-10-07 | [PLAN](PLAN.md) |
 | D-029 | 작업 중간중간 **GitHub 저장소에 푸시**한다: [yusin846-debug/Todo_Zone](https://github.com/yusin846-debug/Todo_Zone) (**public**) | 2026-10-07 | |
 | D-030 | 저장소에는 `skills-lock.json`만 올리고 `.agents/`, `.claude/skills/`는 올리지 않는다. 스킬은 `npx skills experimental_install`로 다시 설치한다 | 2026-10-07 | |
@@ -39,3 +39,10 @@
 | D-032 | Inbox의 Card 색은 **흰색(`#F0F0F0`)으로 고정**한다 | 2026-10-07 | |
 | D-033 | Project 필터는 **한 번에 하나**만 선택한다. 같은 Project를 다시 누르면 해제된다 | 2026-10-07 | D-018과 일관 |
 | D-034 | Project는 Inbox를 포함해 최대 **20개**다 | 2026-10-07 | |
+| D-035 | API는 **REST + JSON**, 경로는 `/api/*`다 | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
+| D-036 | DB 접근은 **Drizzle ORM + libSQL 클라이언트**로 한다. 로컬은 `file:`, 배포 시 Turso(`libsql://`)로 바꾼다 | 2026-10-07 | [ADR-0005](adr/0005-drizzle-libsql-deploy-ready.md) |
+| D-037 | **`shared/`** 폴더(npm workspaces)에 zod 스키마와 타입을 둔다. D-027의 폴더 구조는 `frontend/` + `backend/` + `shared/`로 개정한다 | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
+| D-038 | 프론트엔드 서버 상태는 **TanStack Query**로 관리한다. Card 이동은 **낙관적 업데이트**로 하고, 실패하면 되돌린다 | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
+| D-039 | 스타일은 **CSS Modules + CSS 변수(디자인 토큰)**로 한다 | 2026-10-07 | |
+| D-040 | 개발은 루트에서 `npm run dev` 한 번으로 실행한다. frontend는 5173, backend는 **127.0.0.1:3000**이고 Vite가 `/api`를 백엔드로 넘긴다(프록시) | 2026-10-07 | [ARCHITECTURE](ARCHITECTURE.md) |
+| D-041 | MVP는 **로컬 전용**이다. MVP 이후 **Vercel 배포** 마일스톤을 둔다. 배포 전에 인증을 추가하도록 ADR-0002를 재검토한다 | 2026-10-07 | [ADR-0005](adr/0005-drizzle-libsql-deploy-ready.md) |

@@ -6,12 +6,13 @@ TO-DO ZONE: 할 일을 카드로 관리하는 개인용 웹앱을 만드는 저�
 
 ## 환경
 - 서버 + DB에 저장, 로그인 없음, 로컬 실행 전용 ([ADR-0002](docs/adr/0002-server-without-login-local-only.md))
-- TypeScript / React + Vite (`frontend/`) / Node.js + Express (`backend/`) / SQLite ([ADR-0004](docs/adr/0004-typescript-react-express-sqlite.md))
-- 실행·테스트 명령: 각 폴더의 `package.json` scripts를 본다 (아직 미작성)
+- TypeScript / React + Vite (`frontend/`) / Node.js + Express (`backend/`) / `shared/` / SQLite (Drizzle + libSQL)
+- 구조와 경계: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- 실행·테스트 명령: 루트와 각 폴더의 `package.json` scripts를 본다 (아직 미작성)
 
 ## 작업 전
 1. 작업 요청마다, 파일을 바꾸거나 명령을 실행하기 전에 다음 문서를 읽는다. 없는 파일은 "없다"고 말한다.
-   - [README.md](README.md), [docs/DECISIONS.md](docs/DECISIONS.md), docs/PLAN.md, docs/PRD.md
+   - [README.md](README.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/PLAN.md](docs/PLAN.md), [docs/PRD.md](docs/PRD.md)
    - [GLOSSARY.md](GLOSSARY.md): 용어는 여기 정의된 말만 쓴다 (예: 할 일 → **Card**)
 2. 읽은 내용을 바탕으로 **계획**을 먼저 설명한다: 바꿀 파일, 확인 방법.
 3. 사람이 승인한 뒤에 파일을 바꾸거나 명령을 실행한다.

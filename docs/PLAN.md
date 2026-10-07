@@ -10,18 +10,19 @@ step 순서대로 진행한다. 마일스톤마다 **완료 기준**을 만족�
 | 03 | DECISIONS | `docs/DECISIONS.md`, `docs/adr/`, `GLOSSARY.md` | 기획에 필요한 결정이 모두 "확정"이고, 미정 항목은 미정으로 표시되어 있다 | ✅ |
 | 04 | PLAN | `docs/PLAN.md` | 모든 step에 산출물과 완료 기준이 있다 | ✅ |
 | 05 | PRD | `docs/PRD.md` | MVP 기능마다 사용자 시나리오와 수용 기준이 있고, 제외 범위가 명시되어 있다 | ✅ |
-| 06 | ARCHITECTURE | `docs/ARCHITECTURE.md` | frontend/backend/DB 구성도와 각 구성 요소의 책임, 데이터 흐름이 있다 | ⬜ |
+| 06 | ARCHITECTURE | `docs/ARCHITECTURE.md` | frontend/backend/DB 구성도와 각 구성 요소의 책임, 데이터 흐름이 있다 | ✅ |
 | 07 | SCREEN-SPEC | `docs/SCREEN-SPEC.md` | 화면마다 레이아웃, 상태(빈 상태/오류/로딩), 데스크톱·모바일 동작, 디자인 토큰이 있다 | ⬜ |
 | 08 | DATA-MODEL | `docs/DATA-MODEL.md` | Card/Project 테이블, 필드, 제약(이름 중복 금지, Inbox 보호, 순서)이 있다 | ⬜ |
 | 09 | API-SPEC | `docs/API-SPEC.md` | 모든 기능의 엔드포인트, 요청·응답 예시, 오류 코드가 있다 | ⬜ |
 | 10 | TEST-PLAN | `docs/TEST-PLAN.md` | PRD의 수용 기준마다 대응하는 테스트가 있다 | ⬜ |
 | 11-0 | 구현 개요 | 구현 순서와 브랜치·커밋 규칙 | 11-1~11-6의 작업 범위가 나뉘어 있다 | ⬜ |
-| 11-1 | 도구 | `frontend/`, `backend/` 초기 설정 | 두 앱이 각각 빈 화면/헬스체크로 실행된다 | ⬜ |
+| 11-1 | 도구 | `frontend/`, `backend/`, `shared/` 초기 설정 (npm workspaces) | 두 앱이 각각 빈 화면/헬스체크로 실행된다 | ⬜ |
 | 11-2 | 프론트엔드 | Board 화면 (가짜 데이터) | SCREEN-SPEC대로 보드가 보이고 드래그가 동작한다 | ⬜ |
 | 11-3 | 백엔드 | API + SQLite | API-SPEC의 엔드포인트가 테스트를 통과한다 | ⬜ |
 | 11-4 | 연결 | 프론트 ↔ 백엔드 연동 | 새로고침해도 카드가 유지된다 | ⬜ |
 | 11-5 | 기능 | 남은 MVP 기능 | PRD의 모든 수용 기준을 만족한다 | ⬜ |
 | 11-6 | 오류 처리 | 오류·예외 상황 | 서버 꺼짐, 잘못된 입력, 빈 상태가 SCREEN-SPEC대로 처리된다 | ⬜ |
+| 12 | 배포 (MVP 이후) | Vercel + Turso, 인증 | 공개 주소에서 로그인한 사용자만 데이터에 접근할 수 있다. 먼저 ADR-0002 재검토 (D-041) | ⬜ |
 
 ## 진행 규칙
 
