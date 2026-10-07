@@ -53,3 +53,10 @@
 | D-046 | 살구색은 대비 기준(4.5) 때문에 `#F2C1AE`로 조정한다. Overdue는 카드 색과 상관없이 **어두운 배지**(`#222` 배경, `#FF9B8F` 글자)로 표시한다 | 2026-10-07 | [SCREEN-SPEC 1.1](SCREEN-SPEC.md) |
 | D-047 | Card 상세와 Projects 관리는 데스크톱에서 **오른쪽 400px 패널**, 모바일에서 **전체 화면 시트**로 연다 | 2026-10-07 | [SCREEN-SPEC](SCREEN-SPEC.md) |
 | D-048 | 화면 확인용 **HTML 시안**을 `docs/mockups/`에 둔다. 구현 코드는 아니다 | 2026-10-07 | [mockups/board.html](mockups/board.html) |
+| D-049 | 카드 순서는 status별 **정수 순번(0부터 빈틈없이)**으로 저장하고, 변경할 때마다 트랜잭션 안에서 다시 매긴다 | 2026-10-07 | [DATA-MODEL 4](DATA-MODEL.md) |
+| D-050 | ID는 **UUID**(문자열)다. frontend가 낙관적 생성을 위해 만들 수 있다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
+| D-051 | Due date는 **시간대 없는 `YYYY-MM-DD`**, `created_at`/`updated_at`은 **UTC ISO 8601**로 저장한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
+| D-052 | Inbox는 `projects.is_inbox = 1`로 구분하고, DB 제약으로 정확히 1개를 보장한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
+| D-053 | Project 이름 중복은 **앞뒤 공백을 제거하고 영문 대소문자를 무시**해서 판단한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
+| D-054 | 색은 **색 이름**(`lavender` 등)으로 저장한다. 색 코드는 디자인 토큰에만 둔다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
+| D-055 | `cards.project_id`는 **FK ON DELETE RESTRICT**로 보호한다 | 2026-10-07 | [DATA-MODEL](DATA-MODEL.md) |
