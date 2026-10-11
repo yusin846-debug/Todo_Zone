@@ -348,13 +348,15 @@
 
 .tileOverdue {
   position: relative;
-  align-self: flex-start;
+  grid-column: 1 / -1;
+  justify-self: start;
   padding: 3px 6px;
   border-radius: var(--radius-pill);
   background: var(--ink);
   color: var(--danger);
   font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
   pointer-events: none;
 }
 

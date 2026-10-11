@@ -197,7 +197,6 @@ export function AreaBento({
                     {open.length}
                     <small>Open</small>
                   </div>
-                  {overdue > 0 && <div className={styles.tileOverdue}>지난 마감 {overdue}장</div>}
                 </div>
                 <div className={styles.chips}>
                   {g.projects.map((p) => {
@@ -220,6 +219,7 @@ export function AreaBento({
                     );
                   })}
                 </div>
+                {overdue > 0 && <div className={styles.tileOverdue}>지난 마감 {overdue}장</div>}
               </div>
               <div className={styles.tileFooter}>
                 <span>
