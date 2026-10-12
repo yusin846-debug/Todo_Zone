@@ -99,24 +99,54 @@ export const planWithAI: AgentPlanner = async (context) => {
       status: code,
       name: error instanceof Error ? error.name : 'unknown',
     });
-    if (code === 402 || code === 403)
-      throw new AppError(
-        503,
-        'AGENT_BILLING',
-        'AI Gateway의 크레딧 또는 결제수단 확인이 필요해요. Card는 변경되지 않았어요.',
-      );
-    if (code === 401)
-      throw new AppError(
-        503,
-        'AGENT_UNAVAILABLE',
-        'AI 연결 인증을 확인해 주세요. Card는 변경되지 않았어요.',
-      );
-    if (code === 429)
-      throw new AppError(429, 'RATE_LIMIT', 'AI 요청이 많아요. 잠시 후 다시 보내 주세요.');
-    throw new AppError(
-      503,
-      'AGENT_UNAVAILABLE',
-      '변경안을 만들지 못했어요. 잠시 후 다시 보내 주세요. Card는 변경되지 않았어요.',
-    );
+    throw agentFailure(error);
   }
 };
+
+/** Return fixed messages only; never expose raw provider errors or request bodies. */
+export function agentFailure(error: unknown): AppError {
+  const status =
+    error && typeof error === 'object' && 'statusCode' in error ? Number(error.statusCode) : 0;
+  const message = error instanceof Error ? error.message.toLowerCase() : '';
+  if (
+    /customer_verification_required|valid payment method|payment method.*required|verify your (account|identity)/.test(
+      message,
+    )
+  )
+    return new AppError(
+      503,
+      'AGENT_BILLING',
+      'AI Gateway 사용을 위한 계정 확인이 필요해요. Vercel AI Gateway에서 결제수단 등록 안내를 확인해 주세요. Card는 변경되지 않았어요.',
+    );
+  if (/quota_for_entity_exceeded|budget.*exhaust|budget.*exceed/.test(message))
+    return new AppError(
+      429,
+      'RATE_LIMIT',
+      'AI Gateway 사용 예산 한도에 도달했어요. Vercel에서 한도와 갱신 시간을 확인해 주세요.',
+    );
+  if (status === 402)
+    return new AppError(
+      503,
+      'AGENT_BILLING',
+      'AI Gateway 크레딧 잔액을 확인해 주세요. Card는 변경되지 않았어요.',
+    );
+  if (status === 403)
+    return new AppError(
+      503,
+      'AGENT_UNAVAILABLE',
+      'AI Gateway가 이 프로젝트의 요청을 허용하지 않았어요. Vercel의 계정 확인 및 접근 정책을 확인해 주세요. Card는 변경되지 않았어요.',
+    );
+  if (status === 401)
+    return new AppError(
+      503,
+      'AGENT_UNAVAILABLE',
+      'AI 연결 인증을 확인해 주세요. Card는 변경되지 않았어요.',
+    );
+  if (status === 429)
+    return new AppError(429, 'RATE_LIMIT', 'AI 요청이 많아요. 잠시 후 다시 보내 주세요.');
+  return new AppError(
+    503,
+    'AGENT_UNAVAILABLE',
+    '변경안을 만들지 못했어요. 잠시 후 다시 보내 주세요. Card는 변경되지 않았어요.',
+  );
+}

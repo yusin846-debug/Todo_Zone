@@ -5,7 +5,7 @@ import { createApp } from './app.ts';
 import { openDb, type Db } from './db/client.ts';
 import { agentTurns, agentLimits } from './db/schema.ts';
 import { ensureAgentTables } from './agent/service.ts';
-import { type ModelPlan, type AgentPlanner } from './agent/model.ts';
+import { agentFailure, type ModelPlan, type AgentPlanner } from './agent/model.ts';
 import type { AgentReply } from '@todo-zone/shared';
 
 const databases: Db[] = [];
@@ -258,5 +258,26 @@ describe('Agent approval boundary', () => {
     await api.get('/api/agent/status').expect(401);
     await api.post('/api/agent/chat').send({}).expect(401);
     await api.post('/api/agent/approve').send({}).expect(401);
+  });
+});
+
+describe('AI Gateway actionable failures', () => {
+  it('distinguishes account verification, credits, and policy denial without leaking raw errors', () => {
+    const verification = agentFailure(
+      Object.assign(new Error('customer_verification_required: valid payment method required'), {
+        statusCode: 403,
+      }),
+    );
+    expect(verification.message).toContain('결제수단 등록');
+    const credits = agentFailure(
+      Object.assign(new Error('insufficient_funds'), { statusCode: 402 }),
+    );
+    expect(credits.message).toContain('크레딧 잔액');
+    const policy = agentFailure(
+      Object.assign(new Error('blocked by rule with private payload'), { statusCode: 403 }),
+    );
+    expect(policy.code).toBe('AGENT_UNAVAILABLE');
+    expect(policy.message).not.toContain('private payload');
+    expect(policy.message).not.toContain('잔액');
   });
 });
