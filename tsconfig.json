@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "noEmit": false,
+    "outDir": "build/server",
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": ["api/**/*.ts", "backend/src/**/*.ts"],
+  "exclude": ["**/*.test.ts", "backend/src/test-helpers.ts"]
+}

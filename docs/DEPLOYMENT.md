@@ -1,6 +1,8 @@
 # 개인용 Vercel 배포
 
-루트 저장소에 `vercel.json`과 `api/index.ts`가 있다. Vercel 프로젝트 Root Directory는 저장소 루트, 빌드는 `npm run build -w frontend`, 출력은 `frontend/dist`다. API는 같은 도메인의 `/api/*`에서 실행된다. Git 자동 배포는 해당 프로젝트가 `main`에 연결되어 있어야 한다.
+루트 저장소에 `vercel.json`과 `api/index.ts`가 있다. Vercel 프로젝트 Root Directory는 저장소 루트, 빌드는 `npm run build`, 출력은 `frontend/dist`다. 공통 패키지 `shared`를 JavaScript(`shared/dist`)로 먼저 빌드한 뒤 frontend를 만든다. API는 같은 도메인의 `/api/*`에서 실행된다. Git 자동 배포는 해당 프로젝트가 `main`에 연결되어 있어야 한다.
+
+루트 `tsconfig.json`의 `rewriteRelativeImportExtensions`로 서버의 `.ts` import를 배포용 `.js` 경로로 변환한다. `@todo-zone/shared`의 런타임 export는 빌드된 `dist/index.js`, 타입 export는 `src/index.ts`다. Vercel에서 Build Command를 별도로 지정했다면 `npm run build`로 바꾸거나 override를 해제한다.
 
 ## 서버 환경 변수
 
