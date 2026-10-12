@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { groupProjects, type Filter } from '../lib/areas.ts';
 import { progressOf, summarize } from '../lib/board.ts';
 import { eyebrowDate, greeting } from '../lib/dates.ts';
-import { Plus } from 'lucide-react';
+import { LogOut, Plus } from 'lucide-react';
 import { droplet, drip, dripParent, press } from '../lib/motion.ts';
 import type { View } from '../lib/useView.ts';
 import { ProjectIconView } from './icons.tsx';
@@ -38,12 +38,15 @@ export function Header({
           onChange={onView}
         />
       </div>
-      <div className={styles.note}>
-        <div>One card at a time.</div>
-        <small className={styles.credit}>Built by Yushin</small>
+      <div className={styles.headerActions}>
+        <div className={styles.note}>
+          <div>One card at a time.</div>
+          <small className={styles.credit}>Built by Yushin</small>
+        </div>
         {onLogout && (
           <button className={styles.logout} type="button" onClick={onLogout}>
-            Log out
+            <LogOut size={16} strokeWidth={1.7} aria-hidden="true" />
+            <span>Log out</span>
           </button>
         )}
       </div>
@@ -68,12 +71,13 @@ export function Footer({ onLogout }: { onLogout?: () => void }) {
         </a>
         {onLogout && (
           <button
-            className={styles.footerLogout}
+            className={`${styles.logout} ${styles.footerLogout}`}
             type="button"
             aria-label="로그아웃"
             onClick={onLogout}
           >
-            Log out
+            <LogOut size={16} strokeWidth={1.7} aria-hidden="true" />
+            <span>Log out</span>
           </button>
         )}
       </nav>

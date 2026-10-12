@@ -34,6 +34,12 @@
   letter-spacing: 0;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
 .note {
   text-align: right;
   font-family: var(--font-display);
@@ -50,16 +56,55 @@
 }
 
 .logout {
-  padding: 4px 0;
-  border: 0;
-  background: transparent;
-  color: var(--paper-muted);
-  font: 400 11px/1.5 var(--font-body);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 17px;
+  border: 1px solid color-mix(in srgb, var(--paper) 22%, transparent);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--paper) 4%, transparent);
+  color: var(--paper);
+  font: 500 13px/1 var(--font-body);
+  white-space: nowrap;
   cursor: pointer;
+  transition:
+    background var(--motion),
+    border-color var(--motion),
+    color var(--motion),
+    transform var(--motion);
+}
+
+.logout svg {
+  flex-shrink: 0;
+  color: var(--paper-muted);
+}
+
+@media (hover: hover) {
+  .logout:hover {
+    border-color: var(--paper);
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .logout:hover svg {
+    color: inherit;
+  }
+}
+
+.logout:focus-visible {
+  outline: 2px solid var(--c-sage);
+  outline-offset: 4px;
+}
+
+.logout:active {
+  transform: scale(0.97);
 }
 
 .footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 20px;
   margin: 0 40px;
@@ -71,6 +116,7 @@
 
 .footer nav {
   display: flex;
+  align-items: center;
   gap: 24px;
 }
 
@@ -87,12 +133,6 @@
 
 .footerLogout {
   display: none;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
 }
 
 .hero {
@@ -442,22 +482,62 @@
   background: var(--surface);
 }
 
+@media (min-width: 601px) and (max-width: 1000px) {
+  .headerActions .note {
+    display: none;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 800px) {
+  .header {
+    padding: 20px 24px;
+    gap: 16px;
+  }
+
+  .viewSwitch {
+    position: static;
+    transform: none;
+    flex-shrink: 0;
+    width: 168px;
+  }
+
+  .logo {
+    font-size: 30px;
+  }
+
+  .logo sup {
+    font-size: 23px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logout {
+    transition: none;
+  }
+
+  .logout:active {
+    transform: none;
+  }
+}
+
 @media (max-width: 600px) {
   .footer {
     margin: 0 16px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
   .footer nav {
     gap: 14px;
   }
   .footerLogout {
-    display: inline;
+    display: inline-flex;
   }
   .header {
     padding: 16px;
     gap: 12px;
   }
   /* 좁은 화면: 한 줄 문구는 숨기고, Board/Review 전환은 로고 오른쪽에 붙인다 */
-  .note {
+  .headerActions {
     display: none;
   }
   .viewSwitch {
