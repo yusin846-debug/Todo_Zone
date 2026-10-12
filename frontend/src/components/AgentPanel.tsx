@@ -5,7 +5,6 @@ import {
   ArrowUp,
   Check,
   CheckCheck,
-  CircleCheck,
   CornerDownLeft,
   FilePlus2,
   Layers3,
@@ -229,6 +228,7 @@ export function AgentPanel({
                 <AgentPet
                   mood={applied ? 'happy' : input.trim() ? 'listening' : 'idle'}
                   paused={motionPaused || !!reducedMotion}
+                  interactive
                 />
                 <div>
                   <h2 id="zone-agent-title">Zone agent</h2>
@@ -515,7 +515,7 @@ export function AgentPanel({
                     </div>
                   ) : (
                     <div className={styles.complete}>
-                      <CircleCheck size={20} />
+                      <AgentPet mood="happy" paused={motionPaused || !!reducedMotion} />
                       <span>
                         All set.<small>예시 체험을 마쳤어요.</small>
                       </span>
