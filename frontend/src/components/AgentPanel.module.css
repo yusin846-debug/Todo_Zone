@@ -405,6 +405,7 @@
   color: var(--agent-text);
 }
 .approval {
+  flex-wrap: wrap;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -413,6 +414,7 @@
   padding-top: 3px;
 }
 .approval p {
+  flex-basis: 100%;
   margin: 0;
   position: relative;
   padding-left: 13px;
@@ -434,6 +436,8 @@
   background: #7f9466;
 }
 .doneButton {
+  margin-left: auto;
+  white-space: nowrap;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -444,7 +448,7 @@
   border-radius: 12px;
   background: #52673e;
   color: #fffef5;
-  font: 700 13px/1 var(--font-display);
+  font: 700 13px/1 var(--font-body);
 }
 .doneButton:hover:not(:disabled) {
   background: #3e522e;

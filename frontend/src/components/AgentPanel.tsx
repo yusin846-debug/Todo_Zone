@@ -46,7 +46,7 @@ export function AgentToggle({ open, onClick }: { open: boolean; onClick: () => v
   );
 }
 
-/** Read and propose through chat. Only the DONE handler can call the approval endpoint. */
+/** Read and propose through chat. Only explicit approval can call the approval endpoint. */
 export function AgentPanel({
   open,
   data,
@@ -79,7 +79,11 @@ export function AgentPanel({
   const scroll = useRef<HTMLDivElement>(null);
   const messageId = useRef(0);
   const reducedMotion = useReducedMotion();
-  const selected = changes.filter((change) => change.selected).length;
+  const selectedChanges = changes.filter((change) => change.selected);
+  const selected = selectedChanges.length;
+  const hasNew = selectedChanges.some((change) => change.kind === 'create');
+  const hasExisting = selectedChanges.some((change) => change.kind !== 'create');
+  const applyLabel = hasNew ? (hasExisting ? '전체 적용하기' : '등록하기') : '변경 적용하기';
   const hasConversation = messages.length > 0;
 
   useEffect(
@@ -210,7 +214,7 @@ export function AgentPanel({
       setError(
         err instanceof Error
           ? err.message
-          : '저장 결과를 확인하지 못했어요. 같은 DONE으로 다시 확인할 수 있어요.',
+          : '저장 결과를 확인하지 못했어요. 적용 버튼을 다시 눌러 확인할 수 있어요.',
       );
     } finally {
       pending.current = false;
@@ -459,7 +463,7 @@ export function AgentPanel({
                     <span>{applied ? '저장 완료' : `${selected} / ${changes.length} 선택`}</span>
                   </div>
                   <p className={styles.sampleNote}>
-                    선택한 변경만 DONE을 누를 때 실제 Card에 저장해요.
+                    내용을 검토하고 적용 버튼을 누르면 선택한 변경만 저장해요.
                   </p>
                   <div className={styles.changeList}>
                     {changes.map((change) => {
@@ -549,11 +553,11 @@ export function AgentPanel({
                   </div>
                   {!applied ? (
                     <div className={styles.approval}>
-                      <p>
+                      <p id="agent-approval-summary" aria-live="polite">
                         <span className={styles.approvalDot} />
-                        확인한 변경만,
-                        <br />
-                        <strong>당신이 결정한 순간에.</strong>
+                        {selected > 0
+                          ? `선택한 ${selected}개 변경사항을 적용해요.`
+                          : '적용할 변경사항을 선택해 주세요.'}
                       </p>
                       <button
                         type="button"
@@ -563,11 +567,13 @@ export function AgentPanel({
                           selected === 0 ||
                           changes.some((change) => change.selected && !change.title.trim())
                         }
-                        aria-label="DONE 변경 적용"
+                        aria-label={busy === 'saving' ? '적용 중' : applyLabel}
+                        aria-describedby="agent-approval-summary"
                         onClick={() => void applyChanges()}
                       >
-                        <Check size={17} /> {busy === 'saving' ? 'Saving…' : 'DONE'}{' '}
-                        <span>{selected}</span>
+                        <Check size={17} aria-hidden="true" />{' '}
+                        {busy === 'saving' ? '적용 중…' : applyLabel}{' '}
+                        <span aria-hidden="true">{selected}</span>
                       </button>
                     </div>
                   ) : (
@@ -651,7 +657,7 @@ export function AgentPanel({
                 </div>
               </form>
               <p className={styles.footnote}>
-                변경안을 확인한 뒤 <b>DONE</b>으로 마무리해요.
+                변경안을 검토하고 <b>직접 적용할 때</b> 저장돼요.
               </p>
             </footer>
           </motion.aside>

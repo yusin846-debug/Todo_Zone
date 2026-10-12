@@ -104,7 +104,7 @@ export async function prepareChanges(
       ? [
           {
             role: 'assistant' as const,
-            content: `이전 변경안은 사용자가 DONE으로 적용했습니다. 적용 Card id: ${previous.result.cardIds.join(', ')}. 다시 적용하지 않습니다.`,
+            content: `이전 변경안은 사용자가 적용 버튼으로 승인하고 저장했습니다. 적용 Card id: ${previous.result.cardIds.join(', ')}. 다시 적용하지 않습니다.`,
           },
         ]
       : []),

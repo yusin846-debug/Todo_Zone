@@ -47,7 +47,7 @@ beforeEach(() => {
   api.agentStatus.mockResolvedValue({
     configured: true,
     model: 'test',
-    message: 'DONE으로 저장해요.',
+    message: '변경안을 확인하고 적용 버튼을 누르면 저장해요.',
   });
   api.chatWithAgent.mockResolvedValue(draft());
   api.approveAgent.mockResolvedValue({
@@ -59,7 +59,15 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('Agent Card management', () => {
-  it('shows actual before/after details and only saves selected, edited changes on DONE', async () => {
+  it('shows actual before/after details and only saves selected, edited changes on explicit approval', async () => {
+    const mixed = draft();
+    mixed.changes[1] = {
+      ...mixed.changes[1]!,
+      kind: 'update',
+      cardId: data.cards[0]!.id,
+      before: data.cards[0]!,
+    };
+    api.chatWithAgent.mockResolvedValue(mixed);
     const onApplied = vi.fn().mockResolvedValue(undefined);
     render(<AgentPanel open data={data} onClose={() => {}} onApplied={onApplied} />);
     await send();
@@ -67,12 +75,21 @@ describe('Agent Card management', () => {
     expect(review.getAllByText('2026-10-13')).toHaveLength(2);
     expect(review.getAllByText('회의에서 검토할 자료')).toHaveLength(2);
     expect(api.approveAgent).not.toHaveBeenCalled();
+    expect(review.getByRole('button', { name: '전체 적용하기' })).toBeTruthy();
+    expect(review.getByText('선택한 2개 변경사항을 적용해요.')).toBeTruthy();
+    fireEvent.click(review.getByLabelText('회의 자료 준비 변경 선택'));
+    expect(review.getByRole('button', { name: '변경 적용하기' })).toBeTruthy();
     fireEvent.click(review.getByLabelText('다음 일정 정리 변경 선택'));
+    expect(
+      (review.getByRole('button', { name: '변경 적용하기' }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(review.getByText('적용할 변경사항을 선택해 주세요.')).toBeTruthy();
+    fireEvent.click(review.getByLabelText('회의 자료 준비 변경 선택'));
     fireEvent.click(review.getByRole('button', { name: '회의 자료 준비 제목 수정' }));
     fireEvent.change(review.getByRole('textbox', { name: '변경안 제목' }), {
       target: { value: '검토한 제목' },
     });
-    const done = review.getByRole('button', { name: 'DONE 변경 적용' });
+    const done = review.getByRole('button', { name: '등록하기' });
     fireEvent.click(done);
     fireEvent.click(done);
     await screen.findByText('1개 변경을 저장했어요.');
@@ -84,7 +101,7 @@ describe('Agent Card management', () => {
     expect(data.cards[0]?.status).toBe('todo');
   });
 
-  it('preserves Korean IME composition and displays clarifications without a DONE action', async () => {
+  it('preserves Korean IME composition and displays clarifications without an approval action', async () => {
     api.chatWithAgent.mockResolvedValue({
       ...draft(),
       changes: [],
@@ -99,7 +116,7 @@ describe('Agent Card management', () => {
     expect(api.chatWithAgent).not.toHaveBeenCalled();
     fireEvent.keyDown(input, { key: 'Enter' });
     await screen.findByText('어느 Project의 Card인가요?');
-    expect(screen.queryByRole('button', { name: 'DONE 변경 적용' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '등록하기' })).toBeNull();
   });
 
   it('shows a failed save as an error, preserving the reviewed request for safe retry', async () => {
@@ -108,7 +125,7 @@ describe('Agent Card management', () => {
     );
     render(<AgentPanel open data={data} onClose={() => {}} />);
     await send();
-    fireEvent.click(await screen.findByRole('button', { name: 'DONE 변경 적용' }));
+    fireEvent.click(await screen.findByRole('button', { name: '등록하기' }));
     expect((await screen.findByRole('alert')).textContent).toContain('다른 창');
     expect(screen.queryByText('All set.')).toBeNull();
     expect(screen.getByRole('region', { name: '변경안' })).toBeTruthy();
@@ -127,7 +144,7 @@ describe('Agent Card management', () => {
     expect(
       api.chatWithAgent.mock.calls[1]![0].draft.map((item: { selected: boolean }) => item.selected),
     ).toEqual([true, false]);
-    expect(screen.queryByRole('button', { name: 'DONE 변경 적용' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '등록하기' })).toBeNull();
     expect(screen.getByRole('status').textContent).toContain('변경안을 준비');
   });
 
