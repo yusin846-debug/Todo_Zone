@@ -13,6 +13,7 @@
     "auth:setup": "tsx src/auth-setup.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.91",
     "@libsql/client": "^0.18.0",
     "@todo-zone/shared": "^0.0.0",
     "ai": "^7.0.137",

@@ -1,4 +1,5 @@
 import { generateText, Output } from 'ai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import type {
   AgentChange,
@@ -11,9 +12,21 @@ import type {
 import { AppError } from '../errors.ts';
 
 // Verified against the live AI Gateway model catalog on 2026-10-12.
-export const agentModel = () => process.env.AI_GATEWAY_MODEL || 'openai/gpt-5.4-mini';
+const usesOpenAI = () => !!process.env.OPENAI_API_KEY;
+export const agentModel = () =>
+  usesOpenAI()
+    ? process.env.OPENAI_MODEL || 'gpt-5.4-mini'
+    : process.env.AI_GATEWAY_MODEL || 'openai/gpt-5.4-mini';
+export const agentLanguageModel = () =>
+  usesOpenAI()
+    ? createOpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+        baseURL: 'https://api.openai.com/v1',
+      }).responses(agentModel())
+    : agentModel();
 export function agentConnection(): AgentConnection {
   const configured = !!(
+    process.env.OPENAI_API_KEY ||
     process.env.AI_GATEWAY_API_KEY ||
     process.env.VERCEL_OIDC_TOKEN ||
     process.env.VERCEL
@@ -23,7 +36,7 @@ export function agentConnection(): AgentConnection {
     model: agentModel(),
     message: configured
       ? '변경안을 확인한 뒤 DONE으로 저장해요.'
-      : 'AI 연결 설정이 필요해요. 서버의 AI Gateway 인증을 확인해 주세요.',
+      : 'AI 연결 설정이 필요해요. 서버의 OpenAI API 키 또는 AI Gateway 인증을 확인해 주세요.',
   };
 }
 const fields = ['title', 'memo', 'dueDate', 'projectId', 'status', 'checklist'] as const;
@@ -81,7 +94,8 @@ export const planWithAI: AgentPlanner = async (context) => {
     throw new AppError(503, 'AGENT_UNAVAILABLE', agentConnection().message);
   try {
     const result = await generateText({
-      model: agentModel(),
+      model: agentLanguageModel(),
+      providerOptions: usesOpenAI() ? { openai: { store: false } } : undefined,
       system: INSTRUCTIONS,
       prompt: JSON.stringify(context),
       output: Output.object({ schema: modelPlan }),
@@ -99,12 +113,12 @@ export const planWithAI: AgentPlanner = async (context) => {
       status: code,
       name: error instanceof Error ? error.name : 'unknown',
     });
-    throw agentFailure(error);
+    throw agentFailure(error, usesOpenAI() ? 'openai' : 'gateway');
   }
 };
 
 /** Return fixed messages only; never expose raw provider errors or request bodies. */
-export function agentFailure(error: unknown): AppError {
+export function agentFailure(error: unknown, provider: 'openai' | 'gateway' = 'gateway'): AppError {
   const status =
     error && typeof error === 'object' && 'statusCode' in error ? Number(error.statusCode) : 0;
   // The SDK can replace an authentication message. Inspect only known error
@@ -128,6 +142,33 @@ export function agentFailure(error: unknown): AppError {
   }
   collect(error);
   const message = signals.join(' ').toLowerCase();
+  if (provider === 'openai') {
+    if (status === 402 || /insufficient_quota|billing_hard_limit|billing_not_active/.test(message))
+      return new AppError(
+        503,
+        'AGENT_BILLING',
+        'OpenAI API 크레딧과 사용 한도를 확인해 주세요. Card는 변경되지 않았어요.',
+      );
+    if (status === 401 || /invalid_api_key/.test(message))
+      return new AppError(
+        503,
+        'AGENT_UNAVAILABLE',
+        'OpenAI API 키 인증이 거부됐어요. 서버의 키 설정을 확인해 주세요. Card는 변경되지 않았어요.',
+      );
+    if (status === 403 || status === 404)
+      return new AppError(
+        503,
+        'AGENT_UNAVAILABLE',
+        'OpenAI 프로젝트의 API 권한과 모델 접근 권한을 확인해 주세요. Card는 변경되지 않았어요.',
+      );
+    if (status === 429)
+      return new AppError(429, 'RATE_LIMIT', 'AI 요청이 많아요. 잠시 후 다시 보내 주세요.');
+    return new AppError(
+      503,
+      'AGENT_UNAVAILABLE',
+      '변경안을 만들지 못했어요. 잠시 후 다시 보내 주세요. Card는 변경되지 않았어요.',
+    );
+  }
   if (
     /customer_verification_required|payment_method_required|valid payment method|payment method.*required|credit card|verify your (account|identity)|verification_required/.test(
       message,
