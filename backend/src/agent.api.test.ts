@@ -279,5 +279,19 @@ describe('AI Gateway actionable failures', () => {
     expect(policy.code).toBe('AGENT_UNAVAILABLE');
     expect(policy.message).not.toContain('private payload');
     expect(policy.message).not.toContain('잔액');
+    const wrapped = Object.assign(new Error('AI Gateway authentication failed'), {
+      statusCode: 403,
+      cause: {
+        responseBody: JSON.stringify({ error: { code: 'customer_verification_required' } }),
+      },
+    });
+    expect(agentFailure(wrapped).message).toContain('결제수단 등록');
+    expect(
+      agentFailure(
+        Object.assign(new Error('AI Gateway authentication failed: Invalid OIDC token.'), {
+          statusCode: 403,
+        }),
+      ).message,
+    ).toContain('OIDC');
   });
 });

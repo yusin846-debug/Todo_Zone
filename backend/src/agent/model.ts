@@ -107,9 +107,29 @@ export const planWithAI: AgentPlanner = async (context) => {
 export function agentFailure(error: unknown): AppError {
   const status =
     error && typeof error === 'object' && 'statusCode' in error ? Number(error.statusCode) : 0;
-  const message = error instanceof Error ? error.message.toLowerCase() : '';
+  // The SDK can replace an authentication message. Inspect only known error
+  // metadata in its cause, not request headers, prompts or arbitrary payloads.
+  const signals: string[] = [];
+  function collect(value: unknown, depth = 0) {
+    if (!value || typeof value !== 'object' || depth > 3) return;
+    const item = value as Record<string, unknown>;
+    for (const key of ['message', 'code', 'type'])
+      if (typeof item[key] === 'string') signals.push(item[key] as string);
+    collect(item.cause, depth + 1);
+    collect(item.response, depth + 1);
+    collect(item.error, depth + 1);
+    if (typeof item.responseBody === 'string') {
+      try {
+        collect(JSON.parse(item.responseBody), depth + 1);
+      } catch {
+        /* Non-JSON upstream body is not exposed. */
+      }
+    }
+  }
+  collect(error);
+  const message = signals.join(' ').toLowerCase();
   if (
-    /customer_verification_required|valid payment method|payment method.*required|verify your (account|identity)/.test(
+    /customer_verification_required|payment_method_required|valid payment method|payment method.*required|credit card|verify your (account|identity)|verification_required/.test(
       message,
     )
   )
@@ -129,6 +149,15 @@ export function agentFailure(error: unknown): AppError {
       503,
       'AGENT_BILLING',
       'AI Gateway 크레딧 잔액을 확인해 주세요. Card는 변경되지 않았어요.',
+    );
+  if (
+    status === 401 ||
+    /authentication_error|authentication failed|invalid oidc|invalid_api_key/.test(message)
+  )
+    return new AppError(
+      503,
+      'AGENT_UNAVAILABLE',
+      'AI Gateway 배포 인증이 거부됐어요. 프로젝트의 OIDC 인증 또는 AI Gateway 키 설정을 확인해 주세요. Card는 변경되지 않았어요.',
     );
   if (status === 403)
     return new AppError(
