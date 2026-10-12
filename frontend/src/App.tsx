@@ -4,6 +4,7 @@ import { ApiRequestError, request } from './api/client.ts';
 import { Login } from './components/Login.tsx';
 import { AnimatePresence, motion } from 'motion/react';
 import { useBoardActions, useBoardQuery, useProjectActions, type BoardData } from './api/board.ts';
+import { AgentPanel, AgentToggle } from './components/AgentPanel.tsx';
 import { Board } from './components/Board.tsx';
 import { CardPanel } from './components/CardPanel.tsx';
 import { ProjectsPanel } from './components/ProjectsPanel.tsx';
@@ -133,7 +134,7 @@ function Ready({ data, view }: { data: BoardData; view: View }) {
   );
 }
 
-type OpenPanel = { kind: 'card'; id: string } | { kind: 'projects' } | null;
+type OpenPanel = { kind: 'card'; id: string } | { kind: 'projects' } | { kind: 'agent' } | null;
 
 function BoardPage({
   data,
@@ -165,8 +166,22 @@ function BoardPage({
   return (
     <>
       {/* 패널이 열리면 데스크톱에서 Board가 패널 폭만큼 좁아져 계속 보인다 (D-047) */}
-      <div className={styles.page} data-panel-open={panel !== null}>
-        <Hero cards={visible} today={today} hour={now.getHours()} />
+      <div
+        className={styles.page}
+        data-panel-open={panel !== null && panel.kind !== 'agent'}
+        data-agent-open={panel?.kind === 'agent'}
+      >
+        <Hero
+          cards={visible}
+          today={today}
+          hour={now.getHours()}
+          action={
+            <AgentToggle
+              open={panel?.kind === 'agent'}
+              onClick={() => setPanel(panel?.kind === 'agent' ? null : { kind: 'agent' })}
+            />
+          }
+        />
         <AreaBento
           today={today}
           areas={data.areas}
@@ -193,6 +208,7 @@ function BoardPage({
         />
       </div>
 
+      <AgentPanel open={panel?.kind === 'agent'} data={data} onClose={() => setPanel(null)} />
       <AnimatePresence>
         {openCard && (
           <CardPanel

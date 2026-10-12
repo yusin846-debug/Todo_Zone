@@ -580,3 +580,22 @@
     scroll-snap-align: start;
   }
 }
+
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+@media (max-width: 600px) {
+  .heroActions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .heroActions .summary {
+    font-size: 12px;
+  }
+}

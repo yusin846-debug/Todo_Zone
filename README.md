@@ -17,6 +17,7 @@
 | [docs/DECISIONS.md](docs/DECISIONS.md) | 확정된 결정 목록 |
 | [docs/adr/](docs/adr/) | 주요 결정의 배경 기록 |
 | [docs/PLAN.md](docs/PLAN.md) | 마일스톤과 진행 상태 |
+| [docs/AGENT-PLAN.md](docs/AGENT-PLAN.md) | 앱 내부 Agent UI와 대화형 Card 관리 기획 |
 | [docs/PRD.md](docs/PRD.md) | MVP 기능과 수용 기준 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 구성 요소와 데이터 흐름 |
 | [docs/SCREEN-SPEC.md](docs/SCREEN-SPEC.md) | 화면 명세, 디자인 토큰, 문구표 |

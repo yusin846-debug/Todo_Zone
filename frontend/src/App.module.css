@@ -8,3 +8,14 @@
     padding-right: 400px;
   }
 }
+
+@media (min-width: 1280px) {
+  .page[data-agent-open='true'] {
+    padding-right: 450px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    transition: none;
+  }
+}

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Area, Card, Project } from '@todo-zone/shared';
 import { motion } from 'motion/react';
 import { groupProjects, type Filter } from '../lib/areas.ts';
@@ -86,7 +87,17 @@ export function Footer({ onLogout }: { onLogout?: () => void }) {
 }
 
 /** SCREEN-SPEC S1 Hero (D-064). 요약은 필터와 무관하게 Board 전체 기준. */
-export function Hero({ cards, today, hour }: { cards: Card[]; today: string; hour: number }) {
+export function Hero({
+  cards,
+  today,
+  hour,
+  action,
+}: {
+  cards: Card[];
+  today: string;
+  hour: number;
+  action?: ReactNode;
+}) {
   const { doing, dueToday, overdue } = summarize(cards, today);
   const empty = doing === 0 && dueToday === 0 && overdue === 0;
 
@@ -99,21 +110,24 @@ export function Hero({ cards, today, hour }: { cards: Card[]; today: string; hou
           <span className={styles.heavy}>Let's move cards.</span>
         </h1>
       </div>
-      <p className={styles.summary}>
-        {empty ? (
-          '오늘은 여유로운 날이에요.'
-        ) : (
-          <>
-            진행 중인 카드 <b>{doing}장</b>, 오늘 마감 <b>{dueToday}장</b>
-            {overdue > 0 && (
-              <>
-                <br />
-                지난 마감 <b>{overdue}장</b>이 기다리고 있어요.
-              </>
-            )}
-          </>
-        )}
-      </p>
+      <div className={styles.heroActions}>
+        <p className={styles.summary}>
+          {empty ? (
+            '오늘은 여유로운 날이에요.'
+          ) : (
+            <>
+              진행 중인 카드 <b>{doing}장</b>, 오늘 마감 <b>{dueToday}장</b>
+              {overdue > 0 && (
+                <>
+                  <br />
+                  지난 마감 <b>{overdue}장</b>이 기다리고 있어요.
+                </>
+              )}
+            </>
+          )}
+        </p>
+        {action}
+      </div>
     </section>
   );
 }
