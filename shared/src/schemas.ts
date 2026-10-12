@@ -125,6 +125,10 @@ export type ApiErrorCode =
   | 'NAME_TAKEN'
   | 'PROJECT_LIMIT'
   | 'INTERNAL'
-  | 'UNAUTHORIZED';
+  | 'UNAUTHORIZED'
+  | 'CONFLICT'
+  | 'AGENT_UNAVAILABLE'
+  | 'AGENT_BILLING'
+  | 'RATE_LIMIT';
 
 export type ApiError = { error: { code: ApiErrorCode; message: string } };

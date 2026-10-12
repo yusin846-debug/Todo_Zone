@@ -1,11 +1,13 @@
 import express from 'express';
+import { agentRoutes } from './agent/routes.ts';
+import type { AgentPlanner } from './agent/model.ts';
 import type { Db } from './db/client.ts';
 import { errorHandler } from './errors.ts';
 import { apiRoutes } from './routes.ts';
 import { authHandlers, type AuthConfig } from './auth.ts';
 
 // 서버 설정만 담당한다. 포트에 붙이는 일은 index.ts가 한다 (테스트에서 app만 쓰기 위해).
-export function createApp(db: Db, auth?: AuthConfig) {
+export function createApp(db: Db, auth?: AuthConfig, planner?: AgentPlanner) {
   const app = express();
   app.use(express.json());
   if (auth) {
@@ -19,6 +21,7 @@ export function createApp(db: Db, auth?: AuthConfig) {
       res.set('Cache-Control', 'no-store').json({ required: false, authenticated: true }),
     );
   }
+  app.use('/api/agent', agentRoutes(db, planner));
   app.use('/api', apiRoutes(db));
   app.use(errorHandler);
   return app;

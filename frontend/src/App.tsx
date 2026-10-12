@@ -146,6 +146,7 @@ function BoardPage({
   const [filter, setFilter] = useState<Filter>(null);
   const [panel, setPanel] = useState<OpenPanel>(null);
   const projectActions = useProjectActions();
+  const queryClient = useQueryClient();
 
   const now = new Date();
   const today = toDateKey(now);
@@ -208,7 +209,12 @@ function BoardPage({
         />
       </div>
 
-      <AgentPanel open={panel?.kind === 'agent'} data={data} onClose={() => setPanel(null)} />
+      <AgentPanel
+        open={panel?.kind === 'agent'}
+        data={data}
+        onClose={() => setPanel(null)}
+        onApplied={() => queryClient.invalidateQueries({ queryKey: ['board'] })}
+      />
       <AnimatePresence>
         {openCard && (
           <CardPanel

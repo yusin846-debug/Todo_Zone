@@ -1,55 +1,147 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { AgentPanel } from './components/AgentPanel.tsx';
 import { areas, projects, card } from './test/fakeApi.ts';
+import type { AgentReply } from '@todo-zone/shared';
 
+const api = vi.hoisted(() => ({
+  agentStatus: vi.fn(),
+  chatWithAgent: vi.fn(),
+  approveAgent: vi.fn(),
+}));
+vi.mock('./api/agent.ts', () => api);
 const data = { areas, projects, cards: [card('Actual card', 'todo', 0)] };
-afterEach(() => {
-  cleanup();
-  vi.unstubAllGlobals();
+function draft(): AgentReply {
+  return {
+    conversationId: crypto.randomUUID(),
+    version: 1,
+    reply: '두 변경안을 준비했어요.',
+    clarification: null,
+    expiresAt: Date.now() + 1800000,
+    changes: ['회의 자료 준비', '다음 일정 정리'].map((title) => ({
+      id: crypto.randomUUID(),
+      kind: 'create',
+      cardId: crypto.randomUUID(),
+      before: null,
+      after: {
+        title,
+        memo: '회의에서 검토할 자료',
+        status: 'todo',
+        dueDate: '2026-10-13',
+        checklist: [],
+        projectId: projects[0]!.id,
+      },
+      projectName: projects[0]!.name,
+      projectUpdatedAt: projects[0]!.updatedAt,
+    })),
+  };
+}
+async function send(text = '내일까지 회의 자료 준비를 추가해줘') {
+  const input = screen.getByRole('textbox', { name: '에이전트에게 요청하기' });
+  await waitFor(() => expect((input as HTMLTextAreaElement).disabled).toBe(false));
+  fireEvent.change(input, { target: { value: text } });
+  fireEvent.click(screen.getByRole('button', { name: '메시지 보내기' }));
+}
+beforeEach(() => {
+  vi.clearAllMocks();
+  api.agentStatus.mockResolvedValue({
+    configured: true,
+    model: 'test',
+    message: 'DONE으로 저장해요.',
+  });
+  api.chatWithAgent.mockResolvedValue(draft());
+  api.approveAgent.mockResolvedValue({
+    appliedCount: 1,
+    cardIds: ['saved'],
+    appliedAt: new Date().toISOString(),
+  });
 });
+afterEach(cleanup);
 
-describe('Agent UI preview', () => {
-  it('keeps preview approval separate from actual Card writes and allows excluding changes', () => {
-    const fetch = vi.fn();
-    vi.stubGlobal('fetch', fetch);
-    render(<AgentPanel open data={data} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: /변경안 예시 체험/ }));
-    const review = within(screen.getByRole('region', { name: '예시 변경안' }));
-    fireEvent.click(review.getByLabelText('회의 자료 준비 변경 선택'));
-    expect(review.getByText('2 / 3 선택')).toBeTruthy();
-    fireEvent.click(review.getByRole('button', { name: 'DONE 예시 변경 적용' }));
-    expect(screen.getByRole('status').textContent).toContain('2개');
-    expect(screen.getByRole('status').textContent).toContain('실제 Card는 변경하지 않았어요');
-    expect(fetch).not.toHaveBeenCalled();
+describe('Agent Card management', () => {
+  it('shows actual before/after details and only saves selected, edited changes on DONE', async () => {
+    const onApplied = vi.fn().mockResolvedValue(undefined);
+    render(<AgentPanel open data={data} onClose={() => {}} onApplied={onApplied} />);
+    await send();
+    const review = within(await screen.findByRole('region', { name: '변경안' }));
+    expect(review.getAllByText('2026-10-13')).toHaveLength(2);
+    expect(review.getAllByText('회의에서 검토할 자료')).toHaveLength(2);
+    expect(api.approveAgent).not.toHaveBeenCalled();
+    fireEvent.click(review.getByLabelText('다음 일정 정리 변경 선택'));
+    fireEvent.click(review.getByRole('button', { name: '회의 자료 준비 제목 수정' }));
+    fireEvent.change(review.getByRole('textbox', { name: '변경안 제목' }), {
+      target: { value: '검토한 제목' },
+    });
+    const done = review.getByRole('button', { name: 'DONE 변경 적용' });
+    fireEvent.click(done);
+    fireEvent.click(done);
+    await screen.findByText('1개 변경을 저장했어요.');
+    expect(api.approveAgent).toHaveBeenCalledTimes(1);
+    expect(api.approveAgent.mock.calls[0]![0].changes).toEqual([
+      { id: expect.any(String), title: '검토한 제목' },
+    ]);
+    expect(onApplied).toHaveBeenCalledTimes(1);
     expect(data.cards[0]?.status).toBe('todo');
   });
 
-  it('does not interpret arbitrary text or send Korean IME compositions', () => {
+  it('preserves Korean IME composition and displays clarifications without a DONE action', async () => {
+    api.chatWithAgent.mockResolvedValue({
+      ...draft(),
+      changes: [],
+      clarification: '어느 Project의 Card인가요?',
+    });
     render(<AgentPanel open data={data} onClose={() => {}} />);
     const input = screen.getByRole('textbox', { name: '에이전트에게 요청하기' });
-    fireEvent.change(input, { target: { value: '새 카드 만들어줘' } });
+    await waitFor(() => expect((input as HTMLTextAreaElement).disabled).toBe(false));
+    fireEvent.change(input, { target: { value: '그 카드 완료해줘' } });
     fireEvent.keyDown(input, { key: 'Enter', isComposing: true });
-    expect(screen.queryByRole('log')).toBeNull();
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
-    expect(screen.queryByRole('log')).toBeNull();
+    expect(api.chatWithAgent).not.toHaveBeenCalled();
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(screen.getByRole('log').textContent).toContain('아직 실행되지 않았어요');
-    expect(screen.queryByRole('button', { name: 'DONE 예시 변경 적용' })).toBeNull();
+    await screen.findByText('어느 Project의 Card인가요?');
+    expect(screen.queryByRole('button', { name: 'DONE 변경 적용' })).toBeNull();
   });
 
-  it('disables approval for empty selection and preserves drafts when the panel closes', () => {
+  it('shows a failed save as an error, preserving the reviewed request for safe retry', async () => {
+    api.approveAgent.mockRejectedValueOnce(
+      new Error('다른 창에서 변경됐어요. 변경안을 다시 만들어 주세요.'),
+    );
+    render(<AgentPanel open data={data} onClose={() => {}} />);
+    await send();
+    fireEvent.click(await screen.findByRole('button', { name: 'DONE 변경 적용' }));
+    expect((await screen.findByRole('alert')).textContent).toContain('다른 창');
+    expect(screen.queryByText('All set.')).toBeNull();
+    expect(screen.getByRole('region', { name: '변경안' })).toBeTruthy();
+  });
+
+  it('carries title edits and exclusions into a follow-up, clearing stale approval during generation', async () => {
     const view = render(<AgentPanel open data={data} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: /변경안 예시 체험/ }));
-    screen.getAllByRole('checkbox').forEach((checkbox) => fireEvent.click(checkbox));
-    expect(
-      (screen.getByRole('button', { name: 'DONE 예시 변경 적용' }) as HTMLButtonElement).disabled,
-    ).toBe(true);
+    await send();
+    await screen.findByRole('region', { name: '변경안' });
+    fireEvent.click(screen.getByLabelText('다음 일정 정리 변경 선택'));
     view.rerender(<AgentPanel open={false} data={data} onClose={() => {}} />);
     view.rerender(<AgentPanel open data={data} onClose={() => {}} />);
-    expect(screen.getByText('0 / 3 선택')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: '새 대화' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Keep' }));
-    expect(screen.getByRole('region', { name: '예시 변경안' })).toBeTruthy();
+    expect(screen.getByText('1 / 2 선택')).toBeTruthy();
+    api.chatWithAgent.mockImplementationOnce(() => new Promise(() => {}));
+    await send('마감일만 모레로 바꿔줘');
+    expect(
+      api.chatWithAgent.mock.calls[1]![0].draft.map((item: { selected: boolean }) => item.selected),
+    ).toEqual([true, false]);
+    expect(screen.queryByRole('button', { name: 'DONE 변경 적용' })).toBeNull();
+    expect(screen.getByRole('status').textContent).toContain('변경안을 준비');
+  });
+
+  it('disables submission with an actionable explanation when AI authentication is missing', async () => {
+    api.agentStatus.mockResolvedValue({
+      configured: false,
+      model: '',
+      message: 'AI 연결 설정이 필요해요.',
+    });
+    render(<AgentPanel open data={data} onClose={() => {}} />);
+    await screen.findByText('AI 연결 설정이 필요해요.');
+    expect(
+      (screen.getByRole('button', { name: '메시지 보내기' }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(api.chatWithAgent).not.toHaveBeenCalled();
   });
 });

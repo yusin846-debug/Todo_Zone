@@ -15,63 +15,18 @@ import {
   RotateCcw,
   X,
 } from 'lucide-react';
+import type { AgentChange, AgentConnection } from '@todo-zone/shared';
+import { agentStatus, chatWithAgent, approveAgent } from '../api/agent.ts';
+import { agentDiff } from '../lib/agent-diff.ts';
 import type { BoardData } from '../api/board.ts';
 import { AgentPet } from './AgentPet.tsx';
 import { settle } from '../lib/motion.ts';
 import styles from './AgentPanel.module.css';
 
-type ChangeKind = 'create' | 'update' | 'complete';
-type Change = {
-  id: string;
-  kind: ChangeKind;
-  title: string;
-  detail: string;
-  before?: string;
-  after: string;
-  selected: boolean;
-};
+type Change = AgentChange & { title: string; selected: boolean };
 type Message = { id: number; role: 'user' | 'agent'; text: string };
-const EXAMPLE = '회의 자료 준비를 새로 추가하고, 디자인 검토는 내일로 미뤄줘. 자료 조사는 끝났어.';
 const LABELS = { create: 'NEW', update: 'UPDATE', complete: 'COMPLETE' };
 const ICONS = { create: FilePlus2, update: Pencil, complete: CheckCheck };
-
-function exampleChanges(): Change[] {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const date = new Intl.DateTimeFormat('ko-KR', {
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  }).format(tomorrow);
-  return [
-    {
-      id: 'sample-add',
-      kind: 'create',
-      title: '회의 자료 준비',
-      detail: 'Inbox · 마감일 없음',
-      after: 'Todo',
-      selected: true,
-    },
-    {
-      id: 'sample-date',
-      kind: 'update',
-      title: '디자인 검토',
-      detail: 'Due date',
-      before: '미지정',
-      after: date,
-      selected: true,
-    },
-    {
-      id: 'sample-done',
-      kind: 'complete',
-      title: '자료 조사',
-      detail: 'Status',
-      before: 'Doing',
-      after: 'Done',
-      selected: true,
-    },
-  ];
-}
 
 export function AgentToggle({ open, onClick }: { open: boolean; onClick: () => void }) {
   return (
@@ -91,16 +46,26 @@ export function AgentToggle({ open, onClick }: { open: boolean; onClick: () => v
   );
 }
 
-/** UI preview only. No Card mutation or external model call is made in this component. */
+/** Read and propose through chat. Only the DONE handler can call the approval endpoint. */
 export function AgentPanel({
   open,
   data,
   onClose,
+  onApplied,
 }: {
   open: boolean;
   data: BoardData;
   onClose: () => void;
+  onApplied?: () => Promise<unknown>;
 }) {
+  const [connection, setConnection] = useState<AgentConnection | null>(null);
+  const [busy, setBusy] = useState<'thinking' | 'saving' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState(() => crypto.randomUUID());
+  const [version, setVersion] = useState(0);
+  const [expiresAt, setExpiresAt] = useState(0);
+  const pending = useRef(false);
+  const requestId = useRef(0);
   const [motionPaused, setMotionPaused] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -117,6 +82,33 @@ export function AgentPanel({
   const selected = changes.filter((change) => change.selected).length;
   const hasConversation = messages.length > 0;
 
+  useEffect(
+    () => () => {
+      requestId.current += 1;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    agentStatus()
+      .then((value) => {
+        if (active) setConnection(value);
+      })
+      .catch(() => {
+        if (active)
+          setConnection({
+            configured: false,
+            model: '',
+            message: '연결 상태를 확인하지 못했어요. 패널을 다시 열어 주세요.',
+          });
+      });
+    return () => {
+      active = false;
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const opener = document.activeElement as HTMLElement | null;
@@ -130,48 +122,114 @@ export function AgentPanel({
   }, [open]);
 
   useEffect(() => {
+    if (open && connection?.configured) composer.current?.focus();
+  }, [open, connection?.configured]);
+
+  useEffect(() => {
     if (scroll.current) scroll.current.scrollTop = scroll.current.scrollHeight;
-  }, [messages, applied, notice, open]);
+  }, [messages, applied, notice, error, busy, open]);
 
   function append(role: Message['role'], text: string) {
     setMessages((current) => [...current, { id: ++messageId.current, role, text }]);
   }
 
-  function showExample() {
-    setMessages([]);
-    append('user', EXAMPLE);
-    append(
-      'agent',
-      '이렇게 3개의 변경안을 검토하게 됩니다. 적용할 항목을 고르고, 필요하면 제목을 수정해 보세요.',
-    );
-    setChanges(exampleChanges());
-    setApplied(false);
-    setNotice(null);
-    setEditing(null);
-    setInput('');
-    setConfirmReset(false);
-  }
-
-  function submit() {
+  async function submit() {
     const text = input.trim();
-    if (!text) return;
+    if (!text || pending.current || !connection?.configured) return;
+    const id = ++requestId.current;
+    pending.current = true;
+    setBusy('thinking');
+    setError(null);
+    setNotice(null);
+    setApplied(false);
+    setEditing(null);
+    const draft = changes
+      .filter(() => !applied)
+      .map(({ id, title, selected }) => ({ id, title, selected }));
+    setChanges([]);
     append('user', text);
     setInput('');
-    setNotice(null);
-    append(
-      'agent',
-      '입력한 내용은 아직 실행되지 않았어요. 지금은 UI 미리보기이며, 자유로운 대화로 Card를 관리하려면 AI 연결이 필요해요. 아래 예시로 변경 검토 흐름을 먼저 확인할 수 있어요.',
-    );
-    // Preserve any reviewed example changes; arbitrary text is never passed off as interpreted.
-    composer.current?.focus();
+    try {
+      const result = await chatWithAgent({
+        conversationId,
+        expectedVersion: version,
+        message: text,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
+        draft,
+      });
+      if (id !== requestId.current) return;
+      setVersion(result.version);
+      setExpiresAt(result.expiresAt);
+      setChanges(
+        result.changes.map((change) => ({ ...change, title: change.after.title, selected: true })),
+      );
+      append('agent', result.clarification || result.reply);
+    } catch (err) {
+      if (id !== requestId.current) return;
+      setError(
+        err instanceof Error ? err.message : '변경안을 만들지 못했어요. 다시 요청해 주세요.',
+      );
+      setInput(text);
+    } finally {
+      if (id === requestId.current) {
+        pending.current = false;
+        setBusy(null);
+        composer.current?.focus();
+      }
+    }
+  }
+
+  async function applyChanges() {
+    if (pending.current || applied || !selected) return;
+    if (Date.now() >= expiresAt) {
+      setError('변경안이 만료됐어요. 새 대화에서 다시 요청해 주세요.');
+      return;
+    }
+    pending.current = true;
+    setBusy('saving');
+    setError(null);
+    try {
+      const result = await approveAgent({
+        conversationId,
+        version,
+        changes: changes
+          .filter((change) => change.selected)
+          .map(({ id, title }) => ({ id, title })),
+      });
+      setApplied(true);
+      setEditing(null);
+      setNotice(`${result.appliedCount}개 변경을 저장했어요.`);
+      try {
+        await onApplied?.();
+      } catch {
+        setNotice(
+          `${result.appliedCount}개 변경을 저장했어요. 최신 Board는 새로고침해서 확인해 주세요.`,
+        );
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : '저장 결과를 확인하지 못했어요. 같은 DONE으로 다시 확인할 수 있어요.',
+      );
+    } finally {
+      pending.current = false;
+      setBusy(null);
+    }
   }
 
   function reset() {
+    if (pending.current) return;
+    requestId.current += 1;
+    setConversationId(crypto.randomUUID());
+    setVersion(0);
+    setExpiresAt(0);
     setInput('');
     setMessages([]);
     setChanges([]);
     setApplied(false);
     setNotice(null);
+    setError(null);
     setEditing(null);
     setConfirmReset(false);
     composer.current?.focus();
@@ -184,7 +242,7 @@ export function AgentPanel({
     }
     if (event.key !== 'Tab') return;
     const items = panel.current?.querySelectorAll<HTMLElement>(
-      'button:not(:disabled), textarea, input, [tabindex="0"]',
+      'button:not(:disabled), textarea:not(:disabled), input:not(:disabled), [tabindex="0"]',
     );
     if (!items?.length) return;
     const first = items[0];
@@ -226,7 +284,9 @@ export function AgentPanel({
             <header className={styles.header}>
               <div className={styles.identity}>
                 <AgentPet
-                  mood={applied ? 'happy' : input.trim() ? 'listening' : 'idle'}
+                  mood={
+                    busy ? 'listening' : applied ? 'happy' : input.trim() ? 'listening' : 'idle'
+                  }
                   paused={motionPaused || !!reducedMotion}
                   interactive
                 />
@@ -252,6 +312,7 @@ export function AgentPanel({
                     type="button"
                     className={styles.iconButton}
                     aria-label="새 대화"
+                    disabled={!!busy}
                     onClick={() => setConfirmReset(true)}
                   >
                     <RotateCcw size={17} />
@@ -275,13 +336,15 @@ export function AgentPanel({
                   {data.cards.filter((card) => card.status !== 'done').length} open
                 </span>
               </span>
-              <span className={styles.previewLabel}>UI PREVIEW</span>
+              <span className={styles.previewLabel}>
+                {busy === 'thinking' ? 'THINKING' : busy === 'saving' ? 'SAVING' : 'YOUR ASSISTANT'}
+              </span>
             </div>
 
             <div className={styles.scroll} ref={scroll}>
               {confirmReset && (
                 <div className={styles.resetPrompt}>
-                  <p>현재 대화와 예시 변경안을 비울까요?</p>
+                  <p>현재 대화와 미적용 변경안을 비울까요?</p>
                   <div>
                     <button type="button" onClick={() => setConfirmReset(false)}>
                       Keep
@@ -364,9 +427,6 @@ export function AgentPanel({
                       <ArrowUp size={15} className={styles.starterArrow} />
                     </button>
                   </div>
-                  <button type="button" className={styles.exampleButton} onClick={showExample}>
-                    변경안 예시 체험 <ArrowRight size={14} />
-                  </button>
                 </div>
               ) : (
                 <>
@@ -389,22 +449,17 @@ export function AgentPanel({
                       </div>
                     ))}
                   </div>
-                  {changes.length === 0 && (
-                    <button type="button" className={styles.exampleButton} onClick={showExample}>
-                      변경안 예시 체험 <ArrowRight size={14} />
-                    </button>
-                  )}
                 </>
               )}
 
               {changes.length > 0 && (
-                <section className={styles.review} aria-label="예시 변경안">
+                <section className={styles.review} aria-label="변경안">
                   <div className={styles.reviewHead}>
                     <span>REVIEW CHANGES</span>
-                    <span>{applied ? '체험 완료' : `${selected} / ${changes.length} 선택`}</span>
+                    <span>{applied ? '저장 완료' : `${selected} / ${changes.length} 선택`}</span>
                   </div>
                   <p className={styles.sampleNote}>
-                    예시 Card입니다. 실제 Board에는 반영되지 않아요.
+                    선택한 변경만 DONE을 누를 때 실제 Card에 저장해요.
                   </p>
                   <div className={styles.changeList}>
                     {changes.map((change) => {
@@ -422,7 +477,7 @@ export function AgentPanel({
                               <input
                                 type="checkbox"
                                 checked={change.selected}
-                                disabled={applied}
+                                disabled={applied || !!busy}
                                 aria-label={`${change.title} 변경 선택`}
                                 onChange={() =>
                                   setChanges((current) =>
@@ -442,19 +497,21 @@ export function AgentPanel({
                                 type="button"
                                 className={styles.editButton}
                                 aria-label={`${change.title} 제목 수정`}
+                                disabled={!!busy}
                                 onClick={() => setEditing(editing === change.id ? null : change.id)}
                               >
                                 {editing === change.id ? 'Close' : 'Edit'}
                               </button>
                             )}
                             {applied && change.selected && (
-                              <Check size={15} aria-label="체험 완료" />
+                              <Check size={15} aria-label="저장 완료" />
                             )}
                           </div>
                           {editing === change.id ? (
                             <input
                               className={styles.titleInput}
                               aria-label="변경안 제목"
+                              disabled={!!busy}
                               maxLength={100}
                               value={change.title}
                               onChange={(event) =>
@@ -470,18 +527,22 @@ export function AgentPanel({
                           ) : (
                             <h4>{change.title}</h4>
                           )}
-                          <div className={styles.changeDetail}>
-                            <span>{change.detail}</span>
-                          </div>
-                          <div className={styles.diff}>
-                            {change.before && (
-                              <>
-                                <span className={styles.before}>{change.before}</span>
-                                <ArrowRight size={13} aria-hidden="true" />
-                              </>
-                            )}
-                            <span className={styles.after}>{change.after}</span>
-                          </div>
+                          {agentDiff(change, change.title, data.projects).map((diff) => (
+                            <div className={styles.fieldChange} key={diff.field}>
+                              <div className={styles.changeDetail}>
+                                <span>{diff.label}</span>
+                              </div>
+                              <div className={styles.diff}>
+                                {diff.before !== null && (
+                                  <>
+                                    <span className={styles.before}>{diff.before}</span>
+                                    <ArrowRight size={13} aria-hidden="true" />
+                                  </>
+                                )}
+                                <span className={styles.after}>{diff.after}</span>
+                              </div>
+                            </div>
+                          ))}
                         </article>
                       );
                     })}
@@ -498,26 +559,22 @@ export function AgentPanel({
                         type="button"
                         className={styles.doneButton}
                         disabled={
+                          !!busy ||
                           selected === 0 ||
                           changes.some((change) => change.selected && !change.title.trim())
                         }
-                        aria-label="DONE 예시 변경 적용"
-                        onClick={() => {
-                          setApplied(true);
-                          setEditing(null);
-                          setNotice(
-                            `${selected}개 변경의 적용 흐름을 체험했어요. 실제 Card는 변경하지 않았어요.`,
-                          );
-                        }}
+                        aria-label="DONE 변경 적용"
+                        onClick={() => void applyChanges()}
                       >
-                        <Check size={17} /> DONE <span>{selected}</span>
+                        <Check size={17} /> {busy === 'saving' ? 'Saving…' : 'DONE'}{' '}
+                        <span>{selected}</span>
                       </button>
                     </div>
                   ) : (
                     <div className={styles.complete}>
                       <AgentPet mood="happy" paused={motionPaused || !!reducedMotion} />
                       <span>
-                        All set.<small>예시 체험을 마쳤어요.</small>
+                        All set.<small>선택한 변경을 저장했어요.</small>
                       </span>
                       <button type="button" onClick={reset}>
                         New chat <ArrowRight size={14} />
@@ -525,6 +582,16 @@ export function AgentPanel({
                     </div>
                   )}
                 </section>
+              )}
+              {busy === 'thinking' && (
+                <p className={styles.notice} role="status">
+                  Card를 읽고 변경안을 준비하고 있어요…
+                </p>
+              )}
+              {error && (
+                <p className={styles.error} role="alert">
+                  {error}
+                </p>
               )}
               {notice && (
                 <p className={styles.notice} role="status">
@@ -536,7 +603,7 @@ export function AgentPanel({
             <footer className={styles.footer}>
               <div className={styles.connectionNote}>
                 <span />
-                AI 연결 전 · 예시로 화면을 체험할 수 있어요
+                {connection?.message ?? '연결 상태를 확인하고 있어요…'}
               </div>
               <form
                 className={styles.composer}
@@ -554,6 +621,7 @@ export function AgentPanel({
                   value={input}
                   maxLength={2000}
                   rows={2}
+                  disabled={!!busy || !connection?.configured}
                   placeholder="새로 생긴 일이나 바뀐 내용을 말해 주세요…"
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={(event) => {
@@ -573,7 +641,11 @@ export function AgentPanel({
                     <CornerDownLeft size={12} aria-hidden="true" /> Enter 전송 <i>·</i> Shift +
                     Enter 줄바꿈
                   </span>
-                  <button type="submit" aria-label="메시지 보내기" disabled={!input.trim()}>
+                  <button
+                    type="submit"
+                    aria-label="메시지 보내기"
+                    disabled={!input.trim() || !!busy || !connection?.configured}
+                  >
                     <ArrowUp size={19} />
                   </button>
                 </div>

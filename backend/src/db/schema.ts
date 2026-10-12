@@ -83,3 +83,29 @@ export const cards = sqliteTable(
     ),
   ],
 );
+
+// Server-owned proposals. A model never receives a Card mutation tool.
+export const agentTurns = sqliteTable(
+  'agent_turns',
+  {
+    id: text('id').primaryKey(),
+    conversationId: text('conversation_id').notNull(),
+    version: integer('version').notNull(),
+    payload: text('payload', { mode: 'json' })
+      .$type<{
+        response: import('@todo-zone/shared').AgentReply;
+        messages: import('@todo-zone/shared').AgentMessage[];
+      }>()
+      .notNull(),
+    expiresAt: integer('expires_at').notNull(),
+    approvalHash: text('approval_hash'),
+    result: text('result', { mode: 'json' }).$type<import('@todo-zone/shared').AgentApplied>(),
+  },
+  (t) => [uniqueIndex('agent_conversation_version').on(t.conversationId, t.version)],
+);
+
+export const agentLimits = sqliteTable('agent_limits', {
+  id: text('id').primaryKey(),
+  count: integer('count').notNull(),
+  resetAt: integer('reset_at').notNull(),
+});

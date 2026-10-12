@@ -673,3 +673,34 @@
     transition: none;
   }
 }
+
+.fieldChange + .fieldChange {
+  margin-top: 10px;
+}
+.fieldChange .diff {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.fieldChange .before,
+.fieldChange .after {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.fieldChange .diff > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.error {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f4e4df;
+  color: #8a473e;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.composer textarea:disabled {
+  opacity: 0.65;
+}
+.panel button:disabled {
+  cursor: not-allowed;
+}
