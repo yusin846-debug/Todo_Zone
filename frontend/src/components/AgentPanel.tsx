@@ -10,11 +10,14 @@ import {
   FilePlus2,
   Layers3,
   Pencil,
+  Pause,
+  Play,
   Plus,
   RotateCcw,
   X,
 } from 'lucide-react';
 import type { BoardData } from '../api/board.ts';
+import { AgentPet } from './AgentPet.tsx';
 import { settle } from '../lib/motion.ts';
 import styles from './AgentPanel.module.css';
 
@@ -80,9 +83,7 @@ export function AgentToggle({ open, onClick }: { open: boolean; onClick: () => v
       aria-controls="zone-agent"
       onClick={onClick}
     >
-      <span className={styles.toggleMark} aria-hidden="true">
-        ✳
-      </span>
+      <AgentPet size="tiny" paused />
       <span>Agent</span>
       <span className={styles.toggleTrack} data-on={open} aria-hidden="true">
         <span />
@@ -101,6 +102,7 @@ export function AgentPanel({
   data: BoardData;
   onClose: () => void;
 }) {
+  const [motionPaused, setMotionPaused] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [changes, setChanges] = useState<Change[]>([]);
@@ -224,15 +226,27 @@ export function AgentPanel({
           >
             <header className={styles.header}>
               <div className={styles.identity}>
-                <span className={styles.mark} aria-hidden="true">
-                  ✳
-                </span>
+                <AgentPet
+                  mood={applied ? 'happy' : input.trim() ? 'listening' : 'idle'}
+                  paused={motionPaused || !!reducedMotion}
+                />
                 <div>
                   <h2 id="zone-agent-title">Zone agent</h2>
                   <span className={styles.caption}>A little help, a clear head.</span>
                 </div>
               </div>
               <div className={styles.headActions}>
+                {!reducedMotion && (
+                  <button
+                    type="button"
+                    className={styles.iconButton}
+                    aria-label={motionPaused ? '캐릭터 모션 켜기' : '캐릭터 모션 끄기'}
+                    aria-pressed={motionPaused}
+                    onClick={() => setMotionPaused((value) => !value)}
+                  >
+                    {motionPaused ? <Play size={15} /> : <Pause size={15} />}
+                  </button>
+                )}
                 {hasConversation && (
                   <button
                     type="button"
@@ -281,16 +295,13 @@ export function AgentPanel({
 
               {!hasConversation ? (
                 <div className={styles.welcome}>
-                  <div className={styles.artwork} aria-hidden="true">
-                    <span className={styles.artCard}>
-                      <span />
-                      <span />
-                      <span />
-                    </span>
-                    <span className={styles.artStar}>✳</span>
-                    <span className={styles.artCheck}>
-                      <Check size={19} strokeWidth={2.3} />
-                    </span>
+                  <div className={styles.petStage}>
+                    <AgentPet
+                      size="hero"
+                      mood={input.trim() ? 'listening' : 'idle'}
+                      paused={motionPaused || !!reducedMotion}
+                      interactive
+                    />
                   </div>
                   <span className={styles.eyebrow}>FROM WORDS TO CARDS</span>
                   <h3>
@@ -368,11 +379,7 @@ export function AgentPanel({
                   >
                     {messages.map((message) => (
                       <div key={message.id} className={styles.message} data-role={message.role}>
-                        {message.role === 'agent' && (
-                          <span className={styles.messageMark} aria-hidden="true">
-                            ✳
-                          </span>
-                        )}
+                        {message.role === 'agent' && <AgentPet size="tiny" paused />}
                         <div>
                           <span className={styles.speaker}>
                             {message.role === 'user' ? 'YOU' : 'ZONE AGENT'}
